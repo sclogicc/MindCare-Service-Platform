@@ -255,15 +255,15 @@ npm run build
 
 ## 13. 文档目录
 
-项目中已整理一批设计和迭代文档，位于 `docs` 目录，例如：
+项目文档已整理为较稳定的一组说明文件，位于 `docs` 目录：
 
+- `README.md`：文档导航
 - `api-design.md`：接口设计
 - `backend-structure.md`：后端分层与包结构
+- `backend-module-notes.md`：后端重点模块说明
 - `frontend-integration-plan.md`：前后端联调方案
-- `login-auth-module.md`：登录认证模块说明
-- `appointment-module.md`：预约模块说明
-- `report-module.md`：统计模块说明
-- `upload-module.md`：文件上传模块说明
+- `frontend-ui-summary.md`：前端页面与 UI 说明
+- `startup-guide.md`：启动与常见问题说明
 
 ## 14. 后续可继续完善的方向
 

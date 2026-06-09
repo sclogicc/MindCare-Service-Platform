@@ -10,6 +10,7 @@ target/
 .idea/tasks.xml
 .idea/usage.statistics.xml
 *.iml
+.vscode/
 
 # ===== Logs =====
 logs/
