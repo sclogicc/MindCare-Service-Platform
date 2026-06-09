@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.ConsultationRecordMapper">
+
+    <resultMap id="consultationRecordPageItemResultMap" type="com.mindcare.pojo.ConsultationRecordPageItem">
+        <id column="appointment_id" property="appointmentId"/>
+        <result column="appointment_no" property="appointmentNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="schedule_id" property="scheduleId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="record_id" property="recordId"/>
+        <result column="summary" property="summary"/>
+        <result column="suggestion" property="suggestion"/>
+        <result column="attachment_file_id" property="attachmentFileId"/>
+        <result column="attachment_original_name" property="attachmentOriginalName"/>
+        <result column="attachment_file_url" property="attachmentFileUrl"/>
+        <result column="record_create_time" property="recordCreateTime"/>
+        <result column="record_update_time" property="recordUpdateTime"/>
+    </resultMap>
+
+    <sql id="consultationRecordPageColumns">
+        a.id as appointment_id,
+        a.appointment_no,
+        a.user_id,
+        su.name as user_name,
+        a.counselor_id,
+        cu.name as counselor_name,
+        a.schedule_id,
+        cs.schedule_date,
+        cs.start_time,
+        cs.end_time,
+        a.status,
+        cr.id as record_id,
+        cr.summary,
+        cr.suggestion,
+        cr.attachment_file_id,
+        uf.original_name as attachment_original_name,
+        uf.file_url as attachment_file_url,
+        cr.create_time as record_create_time,
+        cr.update_time as record_update_time
+    </sql>
+
+    <!--
+        分页查询咨询记录列表。
+        这里采用“预约驱动 + 左连接咨询记录”的方式，
+        可以同时覆盖两类业务场景：
+        1. 已确认但尚未填写咨询记录的预约
+        2. 已完成并已经生成咨询记录的预约
+     -->
+    <select id="selectPageList" resultMap="consultationRecordPageItemResultMap">
+        select
+        <include refid="consultationRecordPageColumns"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+                 left join consultation_record cr on a.id = cr.appointment_id
+                 left join upload_file uf on cr.attachment_file_id = uf.id
+        <where>
+            and a.status in (2, 3)
+            <if test="appointmentNo != null and appointmentNo != ''">
+                and a.appointment_no like concat('%', #{appointmentNo}, '%')
+            </if>
+            <if test="userId != null">
+                and a.user_id = #{userId}
+            </if>
+            <if test="counselorId != null">
+                and a.counselor_id = #{counselorId}
+            </if>
+            <if test="status != null">
+                and a.status = #{status}
+            </if>
+            <if test="hasRecord != null and hasRecord == 1">
+                and cr.id is not null
+            </if>
+            <if test="hasRecord != null and hasRecord == 0">
+                and cr.id is null
+            </if>
+        </where>
+        order by a.update_time desc, a.id desc
+    </select>
+
+    <select id="selectDetailByAppointmentId" resultMap="consultationRecordPageItemResultMap">
+        select
+        <include refid="consultationRecordPageColumns"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+                 left join consultation_record cr on a.id = cr.appointment_id
+                 left join upload_file uf on cr.attachment_file_id = uf.id
+        where a.id = #{appointmentId}
+    </select>
+
+    <!--
+        根据预约主键统计咨询记录数量。
+        该查询用于事务场景中的“重复提交保护”：
+        如果一条预约已经写过咨询记录，就不允许再次重复完成。
+    -->
+    <select id="countByAppointmentId" resultType="java.lang.Integer">
+        select count(*)
+        from consultation_record
+        where appointment_id = #{appointmentId}
+    </select>
+
+    <!--
+        新增咨询记录。
+        create_time、update_time 在 Service 层先准备好，
+        Mapper 层只负责插入数据。
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into consultation_record (
+            appointment_id,
+            counselor_id,
+            summary,
+            suggestion,
+            attachment_file_id,
+            create_time,
+            update_time
+        ) values (
+            #{appointmentId},
+            #{counselorId},
+            #{summary},
+            #{suggestion},
+            #{attachmentFileId},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.UploadFileMapper">
+
+    <!--
+        校验附件是否存在。
+        当前事务场景中不直接修改附件表，
+        但需要确保咨询记录引用的附件主键有效。
+    -->
+    <select id="countById" resultType="java.lang.Integer">
+        select count(*)
+        from upload_file
+        where id = #{id}
+    </select>
+
+    <!--
+        新增附件记录。
+        上传成功后，把附件元数据写入 upload_file 表，
+        便于后续头像、咨询记录附件等业务模块通过附件主键进行关联。
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into upload_file (
+            original_name,
+            file_name,
+            file_url,
+            file_type,
+            business_type,
+            uploader_id,
+            create_time,
+            update_time
+        ) values (
+            #{originalName},
+            #{fileName},
+            #{fileUrl},
+            #{fileType},
+            #{businessType},
+            #{uploaderId},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+</mapper>

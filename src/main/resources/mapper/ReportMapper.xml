@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.ReportMapper">
+
+    <!--
+        预约状态分布统计。
+        这里重点演示 case when 的用法：
+        - 一条 SQL 返回四种状态的数量
+        - 这样可以避免一次状态统计拆成多条查询
+    -->
+    <select id="selectAppointmentStatusCount" resultType="com.mindcare.pojo.AppointmentStatusCount">
+        select
+            ifnull(sum(case when a.status = 1 then 1 else 0 end), 0) as pending_count,
+            ifnull(sum(case when a.status = 2 then 1 else 0 end), 0) as confirmed_count,
+            ifnull(sum(case when a.status = 3 then 1 else 0 end), 0) as completed_count,
+            ifnull(sum(case when a.status = 4 then 1 else 0 end), 0) as canceled_count
+        from appointment a
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+        <where>
+            <if test="beginDate != null">
+                and cs.schedule_date <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and cs.schedule_date <![CDATA[<=]]> #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <!--
+        咨询师工作量统计。
+        这里重点演示 group by + count：
+        - 按咨询师分组
+        - 统计每位咨询师的有效预约数量
+        - 已取消预约不计入工作量
+    -->
+    <select id="selectCounselorWorkload" resultType="com.mindcare.pojo.ReportOption">
+        select
+            u.name as name,
+            count(*) as value
+        from appointment a
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user u on c.user_id = u.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+        <where>
+            a.status != 4
+            <if test="beginDate != null">
+                and cs.schedule_date <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and cs.schedule_date <![CDATA[<=]]> #{endDate}
+            </if>
+        </where>
+        group by a.counselor_id, u.name
+        order by value desc
+    </select>
+
+    <!--
+        每月预约数量统计。
+        这里按预约日期所在月份进行 group by，
+        返回数据库中真实存在数据的月份，缺失月份由 Service 层补零。
+    -->
+    <select id="selectMonthlyAppointmentCount" resultType="com.mindcare.pojo.MonthlyAppointmentOption">
+        select
+            month(cs.schedule_date) as month,
+            count(*) as value
+        from appointment a
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+        where year(cs.schedule_date) = #{year}
+        group by month(cs.schedule_date)
+        order by month asc
+    </select>
+
+    <!--
+        反馈评分统计。
+        这里按 score 分组，统计每个分值对应的评价数量。
+        返回结构直接对齐前端图表所需的 name/value 形式。
+    -->
+    <select id="selectFeedbackScoreCount" resultType="com.mindcare.pojo.ReportOption">
+        select
+            concat(score, '分') as name,
+            count(*) as value
+        from feedback
+        <where>
+            <if test="beginDate != null">
+                and create_time <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and create_time <![CDATA[<]]> date_add(#{endDate}, interval 1 day)
+            </if>
+        </where>
+        group by score
+        order by score asc
+    </select>
+
+</mapper>

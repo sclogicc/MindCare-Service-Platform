@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.AppointmentMapper">
+
+    <!--
+        预约基础结果映射。
+        主要用于查询 appointment 单表数据，比如状态流转前先查原记录。
+    -->
+    <resultMap id="appointmentResultMap" type="com.mindcare.pojo.Appointment">
+        <id column="id" property="id"/>
+        <result column="appointment_no" property="appointmentNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="schedule_id" property="scheduleId"/>
+        <result column="status" property="status"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="remark" property="remark"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!--
+        预约详情结果映射。
+        列表页和详情页都使用这套联表结果，
+        避免重复定义两套展示对象。
+    -->
+    <resultMap id="appointmentDetailResultMap" type="com.mindcare.pojo.AppointmentDetail">
+        <id column="id" property="id"/>
+        <result column="appointment_no" property="appointmentNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="schedule_id" property="scheduleId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="remark" property="remark"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="detailColumnList">
+        a.id,
+        a.appointment_no,
+        a.user_id,
+        su.name as user_name,
+        a.counselor_id,
+        cu.name as counselor_name,
+        a.schedule_id,
+        cs.schedule_date,
+        cs.start_time,
+        cs.end_time,
+        a.status,
+        a.contact_phone,
+        a.remark,
+        a.cancel_reason,
+        a.create_time,
+        a.update_time
+    </sql>
+
+    <!--
+        新增预约。
+        预约单号、默认状态、创建时间、更新时间都由 Service 层先准备好，
+        Mapper 只负责持久化。
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into appointment (
+            appointment_no,
+            user_id,
+            counselor_id,
+            schedule_id,
+            status,
+            contact_phone,
+            remark,
+            cancel_reason,
+            create_time,
+            update_time
+        ) values (
+            #{appointmentNo},
+            #{userId},
+            #{counselorId},
+            #{scheduleId},
+            #{status},
+            #{contactPhone},
+            #{remark},
+            #{cancelReason},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <!--
+        分页查询预约列表。
+        这里的分页不在 SQL 中直接写 limit，而是交给 PageHelper 插件完成。
+        XML 只负责动态拼接 where 条件。
+    -->
+    <select id="selectPageList" resultMap="appointmentDetailResultMap">
+        select
+        <include refid="detailColumnList"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+        <where>
+            <if test="appointmentNo != null and appointmentNo != ''">
+                and a.appointment_no like concat('%', #{appointmentNo}, '%')
+            </if>
+            <if test="userId != null">
+                and a.user_id = #{userId}
+            </if>
+            <if test="counselorId != null">
+                and a.counselor_id = #{counselorId}
+            </if>
+            <if test="status != null">
+                and a.status = #{status}
+            </if>
+            <if test="beginDate != null">
+                and cs.schedule_date <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and cs.schedule_date <![CDATA[<=]]> #{endDate}
+            </if>
+        </where>
+        order by a.create_time desc
+    </select>
+
+    <!--
+        查询预约详情。
+        详情查询沿用列表页相同的联表结构，只是额外根据主键精确过滤。
+    -->
+    <select id="selectDetailById" resultMap="appointmentDetailResultMap">
+        select
+        <include refid="detailColumnList"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+        where a.id = #{id}
+    </select>
+
+    <!--
+        根据主键查询预约基础数据。
+        主要用于业务层在状态流转前先读取原预约记录。
+    -->
+    <select id="selectById" resultMap="appointmentResultMap">
+        select
+            id,
+            appointment_no,
+            user_id,
+            counselor_id,
+            schedule_id,
+            status,
+            contact_phone,
+            remark,
+            cancel_reason,
+            create_time,
+            update_time
+        from appointment
+        where id = #{id}
+    </select>
+
+    <!--
+        统计同一时间段下未取消预约的数量。
+        status != 4 表示待确认、已确认、已完成都算占用，
+        只有已取消的预约不再占用时间段。
+    -->
+    <select id="countActiveAppointmentByScheduleId" resultType="java.lang.Integer">
+        select count(*)
+        from appointment
+        where schedule_id = #{scheduleId}
+          and status != 4
+    </select>
+
+    <!--
+        取消预约。
+        单独更新状态、取消原因和更新时间。
+    -->
+    <update id="cancelById">
+        update appointment
+        set status = 4,
+            cancel_reason = #{cancelReason},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <!--
+        通用状态修改。
+        这里只做数据更新，不做状态合法性判断，
+        具体的状态流转规则统一在 Service 层校验。
+    -->
+    <update id="updateStatusById">
+        update appointment
+        set status = #{status},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+</mapper>

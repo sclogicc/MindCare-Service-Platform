@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.UserMapper">
+
+    <!--
+        用户结果映射。
+        这里虽然 application.yml 中已经开启了驼峰映射，
+        但保留一个基础 resultMap 仍然更利于后续扩展和阅读。
+    -->
+    <resultMap id="userResultMap" type="com.mindcare.pojo.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="gender" property="gender"/>
+        <result column="role" property="role"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!--
+        基础列定义。
+        抽成 sql 片段后，后续新增其他查询时可以复用，避免重复书写字段列表。
+    -->
+    <sql id="baseColumnList">
+        id,
+        username,
+        password,
+        name,
+        phone,
+        gender,
+        role,
+        status,
+        create_time,
+        update_time
+    </sql>
+
+    <!--
+        根据用户名查询用户。
+        登录模块只需要精确匹配账号，因此这里使用简单条件查询即可。
+    -->
+    <select id="selectByUsername" resultMap="userResultMap">
+        select
+        <include refid="baseColumnList"/>
+        from sys_user
+        where username = #{username}
+    </select>
+
+    <!--
+        根据主键查询用户。
+        主要用于 /login/info 接口根据 token 中的用户 ID 重新获取数据库中的最新用户信息。
+    -->
+    <select id="selectById" resultMap="userResultMap">
+        select
+        <include refid="baseColumnList"/>
+        from sys_user
+        where id = #{id}
+    </select>
+
+</mapper>

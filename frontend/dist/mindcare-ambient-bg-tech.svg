@@ -1,0 +1,31 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="t1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1200 160) rotate(141) scale(460 340)">
+      <stop stop-color="#51AEFF" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#51AEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="t2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(274 924) rotate(4.4) scale(380 250)">
+      <stop stop-color="#18B39C" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#18B39C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tline" x1="84" y1="1038" x2="1420" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D9B84" stop-opacity="0.12"/>
+      <stop offset="0.5" stop-color="#8BC9FF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#2B78D9" stop-opacity="0.16"/>
+    </linearGradient>
+  </defs>
+  <circle cx="1200" cy="160" r="278" fill="url(#t1)"/>
+  <circle cx="274" cy="924" r="234" fill="url(#t2)"/>
+  <path d="M108 1014C268 882 392 784 531 694C679 598 816 509 956 412C1091 318 1229 239 1418 142" stroke="url(#tline)" stroke-width="2"/>
+  <path d="M102 892C252 804 401 720 542 640C688 557 833 471 974 373C1116 274 1269 217 1458 174" stroke="url(#tline)" stroke-width="1.35"/>
+  <path d="M144 1082C311 926 502 847 633 752C747 669 829 573 935 516C1075 440 1217 440 1371 334" stroke="url(#tline)" stroke-width="1.2" stroke-dasharray="4 10"/>
+  <g opacity="0.34">
+    <circle cx="250" cy="807" r="6" fill="#65B6FF"/>
+    <circle cx="384" cy="723" r="5" fill="#1AA18A"/>
+    <circle cx="558" cy="616" r="6" fill="#98D1FF"/>
+    <circle cx="752" cy="495" r="7" fill="#FFFFFF"/>
+    <circle cx="964" cy="374" r="6" fill="#68BCFF"/>
+    <circle cx="1178" cy="250" r="6" fill="#1DB19A"/>
+    <circle cx="1368" cy="157" r="5" fill="#FFFFFF"/>
+  </g>
+</svg>

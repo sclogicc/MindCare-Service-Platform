@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.CounselorMapper">
+
+    <resultMap id="counselorPageItemResultMap" type="com.mindcare.pojo.CounselorPageItem">
+        <id column="counselor_id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="phone" property="phone"/>
+        <result column="specialty" property="specialty"/>
+        <result column="title" property="title"/>
+        <result column="years_of_experience" property="yearsOfExperience"/>
+        <result column="counselor_status" property="status"/>
+        <result column="counselor_create_time" property="createTime"/>
+        <result column="counselor_update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectPageList" resultMap="counselorPageItemResultMap">
+        select
+            c.id as counselor_id,
+            c.user_id,
+            u.name as counselor_name,
+            u.phone,
+            c.specialty,
+            c.title,
+            c.years_of_experience,
+            c.status as counselor_status,
+            c.create_time as counselor_create_time,
+            c.update_time as counselor_update_time
+        from counselor c
+                 left join sys_user u on c.user_id = u.id
+        <where>
+            <if test="counselorName != null and counselorName != ''">
+                and u.name like concat('%', #{counselorName}, '%')
+            </if>
+            <if test="specialty != null and specialty != ''">
+                and c.specialty like concat('%', #{specialty}, '%')
+            </if>
+            <if test="status != null">
+                and c.status = #{status}
+            </if>
+        </where>
+        order by c.id desc
+    </select>
+
+    <select id="selectActiveOptions" resultType="com.mindcare.pojo.CounselorOption">
+        select
+            c.id,
+            c.user_id,
+            u.name as counselor_name,
+            c.specialty,
+            c.title
+        from counselor c
+                 inner join sys_user u on c.user_id = u.id
+        where c.status = 1
+          and u.status = 1
+        order by c.id asc
+    </select>
+
+    <!--
+        时间段子对象映射。
+        这里单独抽出一个 resultMap，便于 collection 复用，也让主映射结构更清晰。
+    -->
+    <resultMap id="scheduleResultMap" type="com.mindcare.pojo.Schedule">
+        <id column="schedule_id" property="id"/>
+        <result column="schedule_counselor_id" property="counselorId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="schedule_status" property="status"/>
+        <result column="schedule_remark" property="remark"/>
+        <result column="schedule_create_time" property="createTime"/>
+        <result column="schedule_update_time" property="updateTime"/>
+    </resultMap>
+
+    <!--
+        咨询师详情主映射。
+        这里最关键的是 collection：
+        - property="scheduleList" 表示把多条时间段记录装配到 CounselorDetail 的 scheduleList 中
+        - resultMap="scheduleResultMap" 表示子集合中的每个元素如何映射为 Schedule 对象
+     -->
+    <resultMap id="counselorDetailResultMap" type="com.mindcare.pojo.CounselorDetail">
+        <id column="counselor_id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="phone" property="phone"/>
+        <result column="specialty" property="specialty"/>
+        <result column="title" property="title"/>
+        <result column="years_of_experience" property="yearsOfExperience"/>
+        <result column="introduction" property="introduction"/>
+        <result column="avatar_file_id" property="avatarFileId"/>
+        <result column="counselor_status" property="status"/>
+        <result column="counselor_create_time" property="createTime"/>
+        <result column="counselor_update_time" property="updateTime"/>
+
+        <!--
+            collection 映射一对多关系：
+            一个咨询师会对应多条可预约时间段记录。
+            MyBatis 会按照主键 counselor_id 合并主对象，
+            再把每一行中的时间段字段装配进 scheduleList 集合。
+        -->
+        <collection property="scheduleList" resultMap="scheduleResultMap"/>
+    </resultMap>
+
+    <!--
+        查询咨询师详情并带时间段列表。
+        这里使用 left join 有两个原因：
+        1. 即使当前咨询师暂时还没有配置任何时间段，也仍然希望能查出咨询师主信息
+        2. 更符合后台详情页“主信息一定可看，子列表可能为空”的实际场景
+    -->
+    <select id="selectDetailWithSchedulesById" resultMap="counselorDetailResultMap">
+        select
+            c.id as counselor_id,
+            c.user_id,
+            u.name as counselor_name,
+            u.phone,
+            c.specialty,
+            c.title,
+            c.years_of_experience,
+            c.introduction,
+            c.avatar_file_id,
+            c.status as counselor_status,
+            c.create_time as counselor_create_time,
+            c.update_time as counselor_update_time,
+
+            cs.id as schedule_id,
+            cs.counselor_id as schedule_counselor_id,
+            cs.schedule_date,
+            cs.start_time,
+            cs.end_time,
+            cs.status as schedule_status,
+            cs.remark as schedule_remark,
+            cs.create_time as schedule_create_time,
+            cs.update_time as schedule_update_time
+        from counselor c
+                 left join sys_user u on c.user_id = u.id
+                 left join counselor_schedule cs on c.id = cs.counselor_id
+        where c.id = #{id}
+        order by cs.schedule_date asc, cs.start_time asc
+    </select>
+
+    <!--
+        查询咨询师详情并仅携带当前可预约时间段。
+        这里继续复用上面的 resultMap + collection 映射结构，
+        但通过 left join appointment 和状态过滤，把已经被未取消预约占用的时间段排除掉。
+     -->
+    <select id="selectAvailableDetailWithSchedulesById" resultMap="counselorDetailResultMap">
+        select
+            c.id as counselor_id,
+            c.user_id,
+            u.name as counselor_name,
+            u.phone,
+            c.specialty,
+            c.title,
+            c.years_of_experience,
+            c.introduction,
+            c.avatar_file_id,
+            c.status as counselor_status,
+            c.create_time as counselor_create_time,
+            c.update_time as counselor_update_time,
+
+            cs.id as schedule_id,
+            cs.counselor_id as schedule_counselor_id,
+            cs.schedule_date,
+            cs.start_time,
+            cs.end_time,
+            cs.status as schedule_status,
+            cs.remark as schedule_remark,
+            cs.create_time as schedule_create_time,
+            cs.update_time as schedule_update_time
+        from counselor c
+                 left join sys_user u on c.user_id = u.id
+                 left join counselor_schedule cs
+                           on c.id = cs.counselor_id
+                               and cs.status = 1
+                               and cs.schedule_date >= curdate()
+        where c.id = #{id}
+          and c.status = 1
+          and u.status = 1
+          and (
+            cs.id is null
+            or not exists (
+                select 1
+                from appointment a
+                where a.schedule_id = cs.id
+                  and a.status in (1, 2, 3)
+            )
+        )
+        order by cs.schedule_date asc, cs.start_time asc
+    </select>
+
+    <update id="updateById">
+        update counselor
+        set specialty = #{specialty},
+            title = #{title},
+            years_of_experience = #{yearsOfExperience},
+            introduction = #{introduction},
+            avatar_file_id = #{avatarFileId},
+            status = #{status},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <update id="updateStatusById">
+        update counselor
+        set status = #{status},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+</mapper>

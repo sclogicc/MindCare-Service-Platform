@@ -1,0 +1,25 @@
+# ===== Maven =====
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# ===== IDE (IntelliJ IDEA) =====
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+*.iml
+
+# ===== Logs =====
+logs/
+*.log
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Environment =====
+.env
+.env.local
+application-local.yml

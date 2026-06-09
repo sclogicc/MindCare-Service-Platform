@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.FeedbackMapper">
+
+    <resultMap id="feedbackPageItemResultMap" type="com.mindcare.pojo.FeedbackPageItem">
+        <id column="appointment_id" property="appointmentId"/>
+        <result column="appointment_no" property="appointmentNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="schedule_id" property="scheduleId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="feedback_id" property="feedbackId"/>
+        <result column="score" property="score"/>
+        <result column="content" property="content"/>
+        <result column="is_anonymous" property="isAnonymous"/>
+        <result column="feedback_create_time" property="feedbackCreateTime"/>
+        <result column="feedback_update_time" property="feedbackUpdateTime"/>
+    </resultMap>
+
+    <sql id="feedbackPageColumns">
+        a.id as appointment_id,
+        a.appointment_no,
+        a.user_id,
+        case when f.is_anonymous = 1 then '匿名用户' else su.name end as user_name,
+        a.counselor_id,
+        cu.name as counselor_name,
+        a.schedule_id,
+        cs.schedule_date,
+        cs.start_time,
+        cs.end_time,
+        a.status,
+        f.id as feedback_id,
+        f.score,
+        f.content,
+        f.is_anonymous,
+        f.create_time as feedback_create_time,
+        f.update_time as feedback_update_time
+    </sql>
+
+    <!--
+        反馈列表按“已完成预约”驱动。
+        这样既能查到已经评价的数据，也能直接找出尚未评价的已完成预约，
+        更符合普通用户和后台管理人员的实际使用路径。
+     -->
+    <select id="selectPageList" resultMap="feedbackPageItemResultMap">
+        select
+        <include refid="feedbackPageColumns"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+                 left join feedback f on a.id = f.appointment_id
+        <where>
+            and a.status = 3
+            <if test="appointmentNo != null and appointmentNo != ''">
+                and a.appointment_no like concat('%', #{appointmentNo}, '%')
+            </if>
+            <if test="userId != null">
+                and a.user_id = #{userId}
+            </if>
+            <if test="counselorId != null">
+                and a.counselor_id = #{counselorId}
+            </if>
+            <if test="score != null">
+                and f.score = #{score}
+            </if>
+            <if test="isAnonymous != null">
+                and f.is_anonymous = #{isAnonymous}
+            </if>
+            <if test="hasFeedback != null and hasFeedback == 1">
+                and f.id is not null
+            </if>
+            <if test="hasFeedback != null and hasFeedback == 0">
+                and f.id is null
+            </if>
+        </where>
+        order by a.update_time desc, a.id desc
+    </select>
+
+    <select id="selectDetailById" resultMap="feedbackPageItemResultMap">
+        select
+        <include refid="feedbackPageColumns"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+                 left join feedback f on a.id = f.appointment_id
+        where f.id = #{id}
+    </select>
+
+    <select id="selectDetailByAppointmentId" resultMap="feedbackPageItemResultMap">
+        select
+        <include refid="feedbackPageColumns"/>
+        from appointment a
+                 left join sys_user su on a.user_id = su.id
+                 left join counselor c on a.counselor_id = c.id
+                 left join sys_user cu on c.user_id = cu.id
+                 left join counselor_schedule cs on a.schedule_id = cs.id
+                 left join feedback f on a.id = f.appointment_id
+        where a.id = #{appointmentId}
+    </select>
+
+    <select id="countByAppointmentId" resultType="java.lang.Integer">
+        select count(*)
+        from feedback
+        where appointment_id = #{appointmentId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into feedback (
+            appointment_id,
+            user_id,
+            counselor_id,
+            score,
+            content,
+            is_anonymous,
+            create_time,
+            update_time
+        ) values (
+            #{appointmentId},
+            #{userId},
+            #{counselorId},
+            #{score},
+            #{content},
+            #{isAnonymous},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <delete id="deleteById">
+        delete from feedback
+        where id = #{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,1 @@
+import{G as t,H as s,I as o,s as n,J as a,K as r,C as i}from"./index-C9-xs5M-.js";const h=t("auth",{state:()=>({token:i(),userInfo:r()}),actions:{setLoginState(e){this.token=e.token,this.userInfo=e,n(e.token),a(e)},clearLoginState(){this.token="",this.userInfo=null,s(),o()}}});export{h as u};

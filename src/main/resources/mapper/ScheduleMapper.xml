@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mindcare.mapper.ScheduleMapper">
+
+    <resultMap id="scheduleResultMap" type="com.mindcare.pojo.Schedule">
+        <id column="id" property="id"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <resultMap id="schedulePageItemResultMap" type="com.mindcare.pojo.SchedulePageItem">
+        <id column="id" property="id"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="appointment_count" property="appointmentCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="schedulePageColumns">
+        cs.id,
+        cs.counselor_id,
+        su.name as counselor_name,
+        cs.schedule_date,
+        cs.start_time,
+        cs.end_time,
+        cs.status,
+        cs.remark,
+        count(a.id) as appointment_count,
+        cs.create_time,
+        cs.update_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into counselor_schedule (
+            counselor_id,
+            schedule_date,
+            start_time,
+            end_time,
+            status,
+            remark,
+            create_time,
+            update_time
+        ) values (
+            #{counselorId},
+            #{scheduleDate},
+            #{startTime},
+            #{endTime},
+            #{status},
+            #{remark},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <!--
+        分页查询时间段列表。
+        这里使用 group by 的原因是要同时统计每个时间段关联的预约数量，
+        方便后台页面直接展示“该时间段已经被多少条预约引用”。 
+     -->
+    <select id="selectPageList" resultMap="schedulePageItemResultMap">
+        select
+        <include refid="schedulePageColumns"/>
+        from counselor_schedule cs
+                 left join counselor c on cs.counselor_id = c.id
+                 left join sys_user su on c.user_id = su.id
+                 left join appointment a on cs.id = a.schedule_id
+        <where>
+            <if test="counselorId != null">
+                and cs.counselor_id = #{counselorId}
+            </if>
+            <if test="status != null">
+                and cs.status = #{status}
+            </if>
+            <if test="scheduleDate != null">
+                and cs.schedule_date = #{scheduleDate}
+            </if>
+        </where>
+        group by
+            cs.id,
+            cs.counselor_id,
+            su.name,
+            cs.schedule_date,
+            cs.start_time,
+            cs.end_time,
+            cs.status,
+            cs.remark,
+            cs.create_time,
+            cs.update_time
+        order by cs.schedule_date desc, cs.start_time asc, cs.id desc
+    </select>
+
+    <select id="selectById" resultMap="scheduleResultMap">
+        select
+            id,
+            counselor_id,
+            schedule_date,
+            start_time,
+            end_time,
+            status,
+            remark,
+            create_time,
+            update_time
+        from counselor_schedule
+        where id = #{id}
+    </select>
+
+    <select id="selectDetailById" resultMap="schedulePageItemResultMap">
+        select
+        <include refid="schedulePageColumns"/>
+        from counselor_schedule cs
+                 left join counselor c on cs.counselor_id = c.id
+                 left join sys_user su on c.user_id = su.id
+                 left join appointment a on cs.id = a.schedule_id
+        where cs.id = #{id}
+        group by
+            cs.id,
+            cs.counselor_id,
+            su.name,
+            cs.schedule_date,
+            cs.start_time,
+            cs.end_time,
+            cs.status,
+            cs.remark,
+            cs.create_time,
+            cs.update_time
+    </select>
+
+    <update id="updateById">
+        update counselor_schedule
+        set counselor_id = #{counselorId},
+            schedule_date = #{scheduleDate},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            status = #{status},
+            remark = #{remark},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from counselor_schedule
+        where id = #{id}
+    </delete>
+
+    <update id="updateStatusById">
+        update counselor_schedule
+        set status = #{status},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <!--
+        时间重叠校验。
+        这里不按开始结束时间完全相等判断，而是按“区间有交集”判断，
+        更符合排班管理场景。
+        修改场景下通过 id != 当前主键 排除自身记录。
+     -->
+    <select id="countConflictSchedule" resultType="java.lang.Integer">
+        select count(*)
+        from counselor_schedule
+        where counselor_id = #{counselorId}
+          and schedule_date = #{scheduleDate}
+          and start_time <![CDATA[<]]> #{endTime}
+          and end_time <![CDATA[>]]> #{startTime}
+        <if test="id != null">
+            and id != #{id}
+        </if>
+    </select>
+
+    <select id="countAppointmentByScheduleId" resultType="java.lang.Integer">
+        select count(*)
+        from appointment
+        where schedule_id = #{scheduleId}
+    </select>
+
+</mapper>

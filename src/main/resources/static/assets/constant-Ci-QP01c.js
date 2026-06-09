@@ -1,0 +1,1 @@
+const s={1:"待确认",2:"已确认",3:"已完成",4:"已取消"},T={1:"warning",2:"primary",3:"success",4:"info"},S={1:"管理员",2:"咨询师",3:"普通用户"},A={0:"停用",1:"启用"},_={0:"info",1:"success"},c={0:"停用",1:"启用"},P={0:"info",1:"success"};export{T as A,P as C,S as R,_ as S,s as a,c as b,A as c};
