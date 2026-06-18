@@ -63,7 +63,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public void add(Appointment appointment) {
-        validateAddParam(appointment);
+        // 基础字段非空校验已由 Controller 层 @Valid 完成
 
         // 1. 校验目标时间段是否已经被未取消预约占用。
         // 这里不做复杂的时间重叠算法，而是直接按 schedule_id 判断，
@@ -126,9 +126,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public void updateStatus(AppointmentStatusUpdateParam param) {
-        if (param == null || param.getId() == null || param.getStatus() == null) {
-            throw new BusinessException("预约状态参数不完整");
-        }
+        // 基础字段非空校验已由 Controller 层 @Valid 完成
 
         Appointment appointment = appointmentMapper.selectById(param.getId());
         if (appointment == null) {
@@ -146,26 +144,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         validateStatusFlow(oldStatus, newStatus);
         appointmentMapper.updateStatusById(param.getId(), newStatus);
-    }
-
-    /**
-     * 校验新增预约参数。
-     *
-     * @param appointment 预约参数
-     */
-    private void validateAddParam(Appointment appointment) {
-        if (appointment == null) {
-            throw new BusinessException("预约参数不能为空");
-        }
-        if (appointment.getUserId() == null) {
-            throw new BusinessException("预约用户不能为空");
-        }
-        if (appointment.getCounselorId() == null) {
-            throw new BusinessException("咨询师不能为空");
-        }
-        if (appointment.getScheduleId() == null) {
-            throw new BusinessException("预约时间段不能为空");
-        }
     }
 
     /**

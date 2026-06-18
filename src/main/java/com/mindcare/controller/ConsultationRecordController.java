@@ -7,7 +7,9 @@ import com.mindcare.pojo.ConsultationRecordQueryParam;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.ConsultationRecordService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 也能查看已确认但尚未填写记录、待完成闭环的预约。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/consultationRecords")
 public class ConsultationRecordController {
@@ -70,7 +73,7 @@ public class ConsultationRecordController {
      */
     @RequireRole({RequireRole.ADMIN, RequireRole.COUNSELOR})
     @PostMapping("/complete")
-    public Result completeAppointment(@RequestBody CompleteAppointmentParam param) {
+    public Result completeAppointment(@Valid @RequestBody CompleteAppointmentParam param) {
         log.info("完成预约并填写咨询记录: {}", param);
         consultationRecordService.completeAppointment(param);
         return Result.success();

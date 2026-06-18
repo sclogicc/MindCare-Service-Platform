@@ -12,7 +12,9 @@ import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.AppointmentService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 以保持和传统 Spring Boot 后台管理项目一致的分层风格。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/appointments")
 public class AppointmentController {
@@ -68,7 +71,7 @@ public class AppointmentController {
      * @return 统一成功结果
      */
     @PostMapping
-    public Result add(@RequestBody Appointment appointment) {
+    public Result add(@Valid @RequestBody Appointment appointment) {
         log.info("新增预约: {}", appointment);
         appointmentService.add(appointment);
         return Result.success();
@@ -180,7 +183,7 @@ public class AppointmentController {
      * @return 统一成功结果
      */
     @PutMapping("/status")
-    public Result updateStatus(@RequestBody AppointmentStatusUpdateParam param) {
+    public Result updateStatus(@Valid @RequestBody AppointmentStatusUpdateParam param) {
         log.info("修改预约状态: {}", param);
         appointmentService.updateStatus(param);
         return Result.success();

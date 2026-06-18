@@ -10,7 +10,9 @@ import com.mindcare.pojo.CounselorUpdateParam;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.CounselorService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,6 +29,7 @@ import java.util.List;
  * 前端先拉取咨询师列表，再根据咨询师主键查询详情和可预约时间段。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/counselors")
 public class CounselorController {
@@ -100,7 +103,7 @@ public class CounselorController {
      */
     @RequireRole(RequireRole.ADMIN)
     @PutMapping
-    public Result update(@RequestBody CounselorUpdateParam param) {
+    public Result update(@Valid @RequestBody CounselorUpdateParam param) {
         log.info("修改咨询师业务信息: {}", param);
         counselorService.update(param);
         return Result.success();
@@ -114,7 +117,7 @@ public class CounselorController {
      */
     @RequireRole(RequireRole.ADMIN)
     @PutMapping("/status")
-    public Result updateStatus(@RequestBody CounselorStatusUpdateParam param) {
+    public Result updateStatus(@Valid @RequestBody CounselorStatusUpdateParam param) {
         log.info("修改咨询师状态: {}", param);
         counselorService.updateStatus(param);
         return Result.success();

@@ -7,7 +7,9 @@ import com.mindcare.pojo.FeedbackQueryParam;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.FeedbackService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 既能查看已评价记录，也能找出尚未评价的已完成预约。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/feedbacks")
 public class FeedbackController {
@@ -40,7 +43,7 @@ public class FeedbackController {
      * @return 统一成功结果
      */
     @PostMapping
-    public Result add(@RequestBody Feedback feedback) {
+    public Result add(@Valid @RequestBody Feedback feedback) {
         log.info("新增反馈评价: {}", feedback);
         feedbackService.add(feedback);
         return Result.success();

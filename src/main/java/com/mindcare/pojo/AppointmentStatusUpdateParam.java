@@ -1,5 +1,6 @@
 package com.mindcare.pojo;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -15,7 +16,11 @@ import lombok.Data;
 @Data
 public class AppointmentStatusUpdateParam {
 
+    @NotNull(message = "预约ID不能为空")
     private Long id;
+
+    @NotNull(message = "预约状态不能为空")
     private Integer status;
+
     private String cancelReason;
 }

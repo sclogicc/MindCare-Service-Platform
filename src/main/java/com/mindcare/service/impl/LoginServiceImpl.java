@@ -9,7 +9,6 @@ import com.mindcare.service.LoginService;
 import com.mindcare.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,14 +34,8 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public LoginUserInfo login(LoginInfo loginInfo) {
-        // 对基础参数做空值校验，避免无意义查询进入数据库层。
-        if (loginInfo == null
-                || !StringUtils.hasText(loginInfo.getUsername())
-                || !StringUtils.hasText(loginInfo.getPassword())) {
-            return null;
-        }
-
         // 1. 根据用户名查询账号信息。
+        // 基础参数（用户名/密码）的非空校验已由 Controller 层 @Valid 保证。
         User user = userMapper.selectByUsername(loginInfo.getUsername());
         if (user == null) {
             return null;

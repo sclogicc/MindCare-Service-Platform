@@ -8,7 +8,9 @@ import com.mindcare.pojo.SchedulePageItem;
 import com.mindcare.pojo.ScheduleQueryParam;
 import com.mindcare.pojo.ScheduleStatusUpdateParam;
 import com.mindcare.service.ScheduleService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 从而为后续预约模块提供可选资源。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/schedules")
 public class ScheduleController {
@@ -44,7 +47,7 @@ public class ScheduleController {
      */
     @RequireRole(RequireRole.ADMIN)
     @PostMapping
-    public Result add(@RequestBody Schedule schedule) {
+    public Result add(@Valid @RequestBody Schedule schedule) {
         log.info("新增时间段: {}", schedule);
         scheduleService.add(schedule);
         return Result.success();
@@ -83,7 +86,7 @@ public class ScheduleController {
      */
     @RequireRole(RequireRole.ADMIN)
     @PutMapping
-    public Result update(@RequestBody Schedule schedule) {
+    public Result update(@Valid @RequestBody Schedule schedule) {
         log.info("修改时间段: {}", schedule);
         scheduleService.update(schedule);
         return Result.success();
@@ -114,7 +117,7 @@ public class ScheduleController {
      */
     @RequireRole(RequireRole.ADMIN)
     @PutMapping("/status")
-    public Result updateStatus(@RequestBody ScheduleStatusUpdateParam param) {
+    public Result updateStatus(@Valid @RequestBody ScheduleStatusUpdateParam param) {
         log.info("修改时间段状态: {}", param);
         scheduleService.updateStatus(param);
         return Result.success();

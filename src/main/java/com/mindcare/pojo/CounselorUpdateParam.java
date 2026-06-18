@@ -1,5 +1,8 @@
 package com.mindcare.pojo;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -11,10 +14,19 @@ import lombok.Data;
 @Data
 public class CounselorUpdateParam {
 
+    @NotNull(message = "咨询师主键不能为空")
     private Long id;
+
+    @NotBlank(message = "擅长方向不能为空")
     private String specialty;
+
+    @NotBlank(message = "职称不能为空")
     private String title;
+
+    @NotNull(message = "从业年限不能为空")
+    @Min(value = 0, message = "从业年限不能小于0")
     private Integer yearsOfExperience;
+
     private String introduction;
     private Long avatarFileId;
     private Integer status;

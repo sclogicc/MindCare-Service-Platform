@@ -4,6 +4,7 @@ import com.mindcare.pojo.Result;
 import com.mindcare.pojo.UploadResult;
 import com.mindcare.service.UploadService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
  * - 具体上传到 OSS、记录附件元数据等逻辑交给 Service 层处理</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping
 public class UploadController {

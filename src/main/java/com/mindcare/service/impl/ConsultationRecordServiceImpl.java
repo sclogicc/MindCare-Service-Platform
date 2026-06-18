@@ -15,7 +15,6 @@ import com.mindcare.pojo.PageResult;
 import com.mindcare.service.ConsultationRecordService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -99,7 +98,7 @@ public class ConsultationRecordServiceImpl implements ConsultationRecordService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void completeAppointment(CompleteAppointmentParam param) {
-        validateCompleteParam(param);
+        // 基础字段非空校验已由 Controller 层 @Valid 完成
 
         // 1. 查询原预约记录，确认主业务数据存在。
         Appointment appointment = appointmentMapper.selectById(param.getAppointmentId());
@@ -151,23 +150,4 @@ public class ConsultationRecordServiceImpl implements ConsultationRecordService 
         appointmentMapper.updateStatusById(param.getAppointmentId(), STATUS_COMPLETED);
     }
 
-    /**
-     * 校验完成预约业务参数。
-     *
-     * @param param 业务参数
-     */
-    private void validateCompleteParam(CompleteAppointmentParam param) {
-        if (param == null) {
-            throw new BusinessException("完成预约参数不能为空");
-        }
-        if (param.getAppointmentId() == null) {
-            throw new BusinessException("预约ID不能为空");
-        }
-        if (param.getCounselorId() == null) {
-            throw new BusinessException("咨询师ID不能为空");
-        }
-        if (!StringUtils.hasText(param.getSummary())) {
-            throw new BusinessException("咨询摘要不能为空");
-        }
-    }
 }

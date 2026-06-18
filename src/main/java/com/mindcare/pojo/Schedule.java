@@ -1,5 +1,6 @@
 package com.mindcare.pojo;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -16,10 +17,19 @@ import java.time.LocalTime;
 public class Schedule {
 
     private Long id;
+
+    @NotNull(message = "咨询师不能为空")
     private Long counselorId;
+
+    @NotNull(message = "预约日期不能为空")
     private LocalDate scheduleDate;
+
+    @NotNull(message = "开始时间不能为空")
     private LocalTime startTime;
+
+    @NotNull(message = "结束时间不能为空")
     private LocalTime endTime;
+
     private Integer status;
     private String remark;
     private LocalDateTime createTime;

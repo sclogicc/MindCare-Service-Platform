@@ -112,9 +112,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void updateStatus(ScheduleStatusUpdateParam param) {
-        if (param == null || param.getId() == null || param.getStatus() == null) {
-            throw new BusinessException("时间段状态参数不完整");
-        }
+        // 基础字段非空校验已由 Controller 层 @Valid 完成
 
         if (!Objects.equals(param.getStatus(), STATUS_ENABLED) && !Objects.equals(param.getStatus(), STATUS_DISABLED)) {
             throw new BusinessException("时间段状态非法");
@@ -129,29 +127,17 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     /**
-     * 校验基础参数。
+     * 校验基础业务规则（非空校验已由 Controller 层 @Valid 完成）。
      *
      * @param schedule 时间段参数
-     * @param requireId 是否要求主键必填
+     * @param requireId 是否要求主键必填（id 字段在新增时为空，因此由该参数控制）
      */
     private void validateBaseParam(Schedule schedule, boolean requireId) {
-        if (schedule == null) {
-            throw new BusinessException("时间段参数不能为空");
-        }
         if (requireId && schedule.getId() == null) {
             throw new BusinessException("时间段主键不能为空");
         }
-        if (schedule.getCounselorId() == null) {
-            throw new BusinessException("咨询师不能为空");
-        }
-        if (schedule.getScheduleDate() == null) {
-            throw new BusinessException("预约日期不能为空");
-        }
         if (schedule.getScheduleDate().isBefore(LocalDate.now())) {
             throw new BusinessException("不能创建过去日期的时间段");
-        }
-        if (schedule.getStartTime() == null || schedule.getEndTime() == null) {
-            throw new BusinessException("开始时间和结束时间不能为空");
         }
         if (!schedule.getStartTime().isBefore(schedule.getEndTime())) {
             throw new BusinessException("开始时间必须早于结束时间");

@@ -44,7 +44,11 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public void add(Feedback feedback) {
-        validateAddParam(feedback);
+        // 基础字段非空/范围校验已由 Controller 层 @Valid 完成
+        // isAnonymous 默认值
+        if (feedback.getIsAnonymous() == null) {
+            feedback.setIsAnonymous(0);
+        }
 
         Appointment appointment = appointmentMapper.selectById(feedback.getAppointmentId());
         if (appointment == null) {
@@ -125,35 +129,4 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedbackMapper.deleteById(id);
     }
 
-    /**
-     * 校验新增反馈参数。
-     *
-     * @param feedback 反馈参数
-     */
-    private void validateAddParam(Feedback feedback) {
-        if (feedback == null) {
-            throw new BusinessException("反馈参数不能为空");
-        }
-        if (feedback.getAppointmentId() == null) {
-            throw new BusinessException("预约ID不能为空");
-        }
-        if (feedback.getUserId() == null) {
-            throw new BusinessException("用户ID不能为空");
-        }
-        if (feedback.getCounselorId() == null) {
-            throw new BusinessException("咨询师ID不能为空");
-        }
-        if (feedback.getScore() == null || feedback.getScore() < 1 || feedback.getScore() > 5) {
-            throw new BusinessException("评分范围必须是1到5分");
-        }
-        if (!StringUtils.hasText(feedback.getContent())) {
-            throw new BusinessException("评价内容不能为空");
-        }
-        if (feedback.getIsAnonymous() == null) {
-            feedback.setIsAnonymous(0);
-        }
-        if (!Objects.equals(feedback.getIsAnonymous(), 0) && !Objects.equals(feedback.getIsAnonymous(), 1)) {
-            throw new BusinessException("匿名标记非法");
-        }
-    }
 }

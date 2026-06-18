@@ -4,7 +4,9 @@ import com.mindcare.pojo.LoginInfo;
 import com.mindcare.pojo.LoginUserInfo;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.LoginService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 保持 Controller 的职责足够单一，和 tlias-web-management 的风格保持一致。</p>
  */
 @Slf4j
+@Validated
 @RestController
 public class LoginController {
 
@@ -41,7 +44,7 @@ public class LoginController {
      * @return 登录成功时返回用户信息和 token，失败时返回统一错误结果
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginInfo loginInfo) {
+    public Result login(@Valid @RequestBody LoginInfo loginInfo) {
         log.info("用户登录请求: {}", loginInfo.getUsername());
 
         LoginUserInfo loginUserInfo = loginService.login(loginInfo);

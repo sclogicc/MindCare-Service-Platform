@@ -100,9 +100,7 @@ public class CounselorServiceImpl implements CounselorService {
 
     @Override
     public void updateStatus(CounselorStatusUpdateParam param) {
-        if (param == null || param.getId() == null || param.getStatus() == null) {
-            throw new BusinessException("咨询师状态参数不完整");
-        }
+        // 基础字段非空校验已由 Controller 层 @Valid 完成
 
         if (!Objects.equals(param.getStatus(), STATUS_ENABLED) && !Objects.equals(param.getStatus(), STATUS_DISABLED)) {
             throw new BusinessException("咨询师状态非法");
@@ -117,23 +115,11 @@ public class CounselorServiceImpl implements CounselorService {
     }
 
     /**
-     * 校验咨询师修改参数。
+     * 校验咨询师修改业务规则（非空校验已由 Controller 层 @Valid 完成）。
      *
      * @param param 修改参数
      */
     private void validateUpdateParam(CounselorUpdateParam param) {
-        if (param == null || param.getId() == null) {
-            throw new BusinessException("咨询师修改参数不完整");
-        }
-        if (!StringUtils.hasText(param.getSpecialty())) {
-            throw new BusinessException("擅长方向不能为空");
-        }
-        if (!StringUtils.hasText(param.getTitle())) {
-            throw new BusinessException("职称不能为空");
-        }
-        if (param.getYearsOfExperience() == null || param.getYearsOfExperience() < 0) {
-            throw new BusinessException("从业年限不能为空且不能小于0");
-        }
         if (param.getStatus() != null
                 && !Objects.equals(param.getStatus(), STATUS_ENABLED)
                 && !Objects.equals(param.getStatus(), STATUS_DISABLED)) {
