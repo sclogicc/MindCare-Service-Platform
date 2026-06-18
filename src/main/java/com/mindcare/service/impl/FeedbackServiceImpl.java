@@ -2,6 +2,7 @@ package com.mindcare.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.mindcare.constant.AppointmentStatus;
 import com.mindcare.exception.BusinessException;
 import com.mindcare.mapper.AppointmentMapper;
 import com.mindcare.mapper.FeedbackMapper;
@@ -11,8 +12,8 @@ import com.mindcare.pojo.FeedbackPageItem;
 import com.mindcare.pojo.FeedbackQueryParam;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.service.FeedbackService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,13 +27,9 @@ import java.util.Objects;
  * 2. 一次预约只允许提交一条反馈
  * 3. 反馈用户和预约用户必须一致</p>
  */
+@Slf4j
 @Service
 public class FeedbackServiceImpl implements FeedbackService {
-
-    /**
-     * 预约状态：已完成。
-     */
-    private static final int STATUS_COMPLETED = 3;
 
     private final FeedbackMapper feedbackMapper;
     private final AppointmentMapper appointmentMapper;
@@ -45,7 +42,6 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public void add(Feedback feedback) {
         // 基础字段非空/范围校验已由 Controller 层 @Valid 完成
-        // isAnonymous 默认值
         if (feedback.getIsAnonymous() == null) {
             feedback.setIsAnonymous(0);
         }
@@ -55,7 +51,14 @@ public class FeedbackServiceImpl implements FeedbackService {
             throw new BusinessException("预约记录不存在");
         }
 
-        if (!Objects.equals(appointment.getStatus(), STATUS_COMPLETED)) {
+        AppointmentStatus currentStatus;
+        try {
+            currentStatus = AppointmentStatus.fromCode(appointment.getStatus());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("预约状态异常");
+        }
+
+        if (currentStatus != AppointmentStatus.COMPLETED) {
             throw new BusinessException("只有已完成的预约才能提交评价");
         }
 
@@ -75,6 +78,8 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setCreateTime(LocalDateTime.now());
         feedback.setUpdateTime(LocalDateTime.now());
         feedbackMapper.insert(feedback);
+        log.info("评价提交成功: appointmentId={}, userId={}, score={}",
+                feedback.getAppointmentId(), feedback.getUserId(), feedback.getScore());
     }
 
     @Override
@@ -127,6 +132,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         }
 
         feedbackMapper.deleteById(id);
+        log.info("评价已删除: id={}", id);
     }
 
 }

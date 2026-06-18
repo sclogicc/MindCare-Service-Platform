@@ -1,5 +1,7 @@
 package com.mindcare.service.impl;
 
+import com.mindcare.constant.EnableStatus;
+import com.mindcare.constant.UserRole;
 import com.mindcare.exception.BusinessException;
 import com.mindcare.mapper.UserMapper;
 import com.mindcare.pojo.LoginInfo;
@@ -8,6 +10,7 @@ import com.mindcare.pojo.User;
 import com.mindcare.service.LoginService;
 import com.mindcare.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -17,12 +20,13 @@ import java.util.Objects;
 /**
  * 登录认证业务实现类。
  *
- * <p>这里保持“传统后台项目”的实现风格：
+ * <p>这里保持"传统后台项目"的实现风格：
  * 1. Service 负责登录核心流程
  * 2. Mapper 只负责查库
  * 3. JWT 生成与解析交给工具类
  * 4. 业务异常交给全局异常处理器统一处理</p>
  */
+@Slf4j
 @Service
 public class LoginServiceImpl implements LoginService {
 
@@ -34,55 +38,50 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public LoginUserInfo login(LoginInfo loginInfo) {
-        // 1. 根据用户名查询账号信息。
-        // 基础参数（用户名/密码）的非空校验已由 Controller 层 @Valid 保证。
+        // 基础参数（用户名/密码）的非空校验已由 Controller 层 @Valid 保证
         User user = userMapper.selectByUsername(loginInfo.getUsername());
         if (user == null) {
+            log.info("登录失败: 用户名不存在 username={}", loginInfo.getUsername());
             return null;
         }
 
-        // 2. 校验密码。
-        // 当前项目按教学型后台项目处理，直接对比明文密码，方便前期联调和讲解。
-        // 如果后续项目想提升安全性，可以再替换为加密密码方案。
+        // 明文密码对比（教学型项目，后续可替换为 BCrypt）
         if (!Objects.equals(user.getPassword(), loginInfo.getPassword())) {
+            log.info("登录失败: 密码错误 username={}", loginInfo.getUsername());
             return null;
         }
 
-        // 3. 校验账号状态。
-        // 只有启用状态的账号才允许登录，禁用账号直接抛出业务异常。
-        if (!Objects.equals(user.getStatus(), 1)) {
+        // 只有启用状态的账号才允许登录
+        if (!Objects.equals(user.getStatus(), EnableStatus.ENABLED.getCode())) {
             throw new BusinessException("当前账号已被禁用，无法登录");
         }
 
-        // 4. 组装 token 中的 claims。
-        // 这里放入后续常用的用户核心字段，便于后续模块直接从 token 中解析当前用户身份。
+        // 组装 token 中的 claims
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", user.getId());
         claims.put("username", user.getUsername());
         claims.put("name", user.getName());
         claims.put("role", user.getRole());
 
-        // 5. 生成 JWT。
+        // 生成 JWT
         String token = JwtUtils.generateToken(claims);
 
-        // 6. 返回前端登录成功需要的用户信息。
+        log.info("登录成功: username={}, role={}",
+                user.getUsername(), UserRole.fromCode(user.getRole()).getDescription());
         return buildLoginUserInfo(user, token);
     }
 
     @Override
     public LoginUserInfo getLoginUserInfo(String token) {
         try {
-            // 1. 解析 token，获取当前登录用户 ID。
             Claims claims = JwtUtils.parseToken(token);
             Long userId = Long.valueOf(String.valueOf(claims.get("id")));
 
-            // 2. 再次查询数据库，拿到最新用户信息。
-            // 这么做的好处是：如果用户被禁用或资料更新，前端下一次获取用户信息时能拿到数据库中的最新状态。
             User user = userMapper.selectById(userId);
             if (user == null) {
                 throw new BusinessException("当前登录用户不存在");
             }
-            if (!Objects.equals(user.getStatus(), 1)) {
+            if (!Objects.equals(user.getStatus(), EnableStatus.ENABLED.getCode())) {
                 throw new BusinessException("当前账号已被禁用");
             }
 
@@ -94,17 +93,6 @@ public class LoginServiceImpl implements LoginService {
         }
     }
 
-    /**
-     * 统一组装返回给前端的登录用户信息。
-     *
-     * <p>单独抽成私有方法有两个好处：
-     * 1. 避免登录接口和“获取当前登录人”接口重复写组装逻辑
-     * 2. 后续如果返回字段有调整，只需要改一个地方</p>
-     *
-     * @param user  数据库中的用户实体
-     * @param token JWT，可为空
-     * @return 返回给前端的登录用户信息
-     */
     private LoginUserInfo buildLoginUserInfo(User user, String token) {
         LoginUserInfo loginUserInfo = new LoginUserInfo();
         loginUserInfo.setId(user.getId());

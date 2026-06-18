@@ -53,6 +53,40 @@
 
 ---
 
+### 回归批次：REG-003（参数校验增强后回归）
+
+- 回归日期：2026-06-18
+- 对应提交：e8fb345（参数校验统一迁移）
+- 修复内容：
+  - 新增 `spring-boot-starter-validation` 依赖
+  - 9 个 POJO 类添加 Jakarta Bean Validation 注解（@NotNull、@NotBlank、@Min、@Max）
+  - 7 个 Controller 添加 @Validated + @Valid
+  - GlobalExceptionHandler 新增 3 个校验异常处理器
+  - 7 个 Service 类删除 ~40 行手动校验代码
+- 回归范围：
+  - 参数校验专项（5 用例）：空用户名、空 userId、空 score、评分超范围、正常登录
+  - 权限回归（4 用例）：403 拦截、数据隔离
+  - 业务规则回归（5 用例）：过去日期拒绝、时间重叠拒绝、状态流转拦截等
+- 回归结果：14/14 通过
+- 结论：声明式参数校验全面生效，已有业务规则未受影响
+
+---
+
+### 回归批次：REG-004（枚举常量化 + 状态机完善 + 操作日志）
+
+- 回归日期：2026-06-18
+- 对应提交：待提交
+- 修复内容：
+  - 新增 `AppointmentStatus`、`EnableStatus`、`UserRole` 三个枚举类，消除 4 个 Service 中重复的状态常量
+  - `AppointmentStatus` 内置状态机 `canTransitionTo()`，统一状态流转校验入口
+  - 所有 Service 类添加 @Slf4j + 关键操作日志（登录、预约创建/取消/状态变更、咨询完成、评价提交/删除、时间段/咨询师状态变更）
+  - 新增 `sql/schema.sql` DDL 建表脚本
+- 回归范围：全部 8 个模块功能回归
+- 回归结果：待执行
+- 结论：待执行
+
+---
+
 ## 3. 建议记录方式
 
 每一轮回归至少记录以下内容：

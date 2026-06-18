@@ -1,6 +1,6 @@
 package com.mindcare.controller;
 
-import com.mindcare.annotation.RequireRole;
+import com.mindcare.constant.UserRole;
 import com.mindcare.interceptor.TokenInterceptor;
 import com.mindcare.mapper.CounselorMapper;
 import com.mindcare.pojo.Appointment;
@@ -106,9 +106,9 @@ public class AppointmentController {
         if (role == null || userId == null) {
             return;
         }
-        if (role == RequireRole.USER) {
+        if (role == UserRole.USER.getCode()) {
             queryParam.setUserId(userId);
-        } else if (role == RequireRole.COUNSELOR) {
+        } else if (role == UserRole.COUNSELOR.getCode()) {
             Long counselorId = counselorMapper.selectIdByUserId(userId);
             if (counselorId != null) {
                 queryParam.setCounselorId(counselorId);
@@ -142,10 +142,10 @@ public class AppointmentController {
         if (role == null || userId == null) {
             return;
         }
-        if (role == RequireRole.USER && !userId.equals(detail.getUserId())) {
+        if (role == UserRole.USER.getCode() && !userId.equals(detail.getUserId())) {
             throw new com.mindcare.exception.BusinessException("无权访问该预约");
         }
-        if (role == RequireRole.COUNSELOR) {
+        if (role == UserRole.COUNSELOR.getCode()) {
             Long counselorId = counselorMapper.selectIdByUserId(userId);
             if (counselorId == null || !counselorId.equals(detail.getCounselorId())) {
                 throw new com.mindcare.exception.BusinessException("无权访问该预约");

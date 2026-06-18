@@ -2,6 +2,7 @@ package com.mindcare.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.mindcare.constant.EnableStatus;
 import com.mindcare.exception.BusinessException;
 import com.mindcare.mapper.ScheduleMapper;
 import com.mindcare.pojo.PageResult;
@@ -10,12 +11,12 @@ import com.mindcare.pojo.SchedulePageItem;
 import com.mindcare.pojo.ScheduleQueryParam;
 import com.mindcare.pojo.ScheduleStatusUpdateParam;
 import com.mindcare.service.ScheduleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 时间段业务实现类。
@@ -26,18 +27,9 @@ import java.util.Objects;
  * 3. 删除前预约引用校验
  * 4. 基础状态切换</p>
  */
+@Slf4j
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
-
-    /**
-     * 时间段状态：停用。
-     */
-    private static final int STATUS_DISABLED = 0;
-
-    /**
-     * 时间段状态：启用。
-     */
-    private static final int STATUS_ENABLED = 1;
 
     private final ScheduleMapper scheduleMapper;
 
@@ -53,10 +45,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setCreateTime(LocalDateTime.now());
         schedule.setUpdateTime(LocalDateTime.now());
         if (schedule.getStatus() == null) {
-            schedule.setStatus(STATUS_ENABLED);
+            schedule.setStatus(EnableStatus.ENABLED.getCode());
         }
 
         scheduleMapper.insert(schedule);
+        log.info("时间段新增成功: counselorId={}, date={}, {}~{}",
+                schedule.getCounselorId(), schedule.getScheduleDate(),
+                schedule.getStartTime(), schedule.getEndTime());
     }
 
     @Override
@@ -89,6 +84,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         validateConflict(schedule);
         scheduleMapper.updateById(schedule);
+        log.info("时间段已修改: id={}", schedule.getId());
     }
 
     @Override
@@ -108,13 +104,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         scheduleMapper.deleteById(id);
+        log.info("时间段已删除: id={}", id);
     }
 
     @Override
     public void updateStatus(ScheduleStatusUpdateParam param) {
         // 基础字段非空校验已由 Controller 层 @Valid 完成
 
-        if (!Objects.equals(param.getStatus(), STATUS_ENABLED) && !Objects.equals(param.getStatus(), STATUS_DISABLED)) {
+        if (!EnableStatus.isValid(param.getStatus())) {
             throw new BusinessException("时间段状态非法");
         }
 
@@ -123,14 +120,13 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new BusinessException("时间段不存在");
         }
 
-        scheduleMapper.updateStatusById(param.getId(), param.getStatus());
+        EnableStatus newStatus = EnableStatus.fromCode(param.getStatus());
+        scheduleMapper.updateStatusById(param.getId(), newStatus.getCode());
+        log.info("时间段状态已变更: id={}, status={}", param.getId(), newStatus.getDescription());
     }
 
     /**
      * 校验基础业务规则（非空校验已由 Controller 层 @Valid 完成）。
-     *
-     * @param schedule 时间段参数
-     * @param requireId 是否要求主键必填（id 字段在新增时为空，因此由该参数控制）
      */
     private void validateBaseParam(Schedule schedule, boolean requireId) {
         if (requireId && schedule.getId() == null) {
@@ -142,21 +138,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (!schedule.getStartTime().isBefore(schedule.getEndTime())) {
             throw new BusinessException("开始时间必须早于结束时间");
         }
-        if (schedule.getStatus() != null
-                && !Objects.equals(schedule.getStatus(), STATUS_ENABLED)
-                && !Objects.equals(schedule.getStatus(), STATUS_DISABLED)) {
+        if (schedule.getStatus() != null && !EnableStatus.isValid(schedule.getStatus())) {
             throw new BusinessException("时间段状态非法");
         }
     }
 
     /**
      * 校验时间段冲突。
-     *
-     * <p>这里是时间段管理模块的关键业务规则：
-     * 同一咨询师在同一天内，不能存在时间重叠的两个时间段。
-     * 这样可以保证后续用户基于 schedule_id 发起预约时，底层时间资源本身就是干净的。</p>
-     *
-     * @param schedule 时间段参数
      */
     private void validateConflict(Schedule schedule) {
         Integer conflictCount = scheduleMapper.countConflictSchedule(schedule);
