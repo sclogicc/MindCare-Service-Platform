@@ -8,17 +8,48 @@
 
 ## 2. 回归记录模板
 
-### 回归批次：REG-001
+### 回归批次：REG-001（首轮基线测试）
 
-- 回归日期：待补充
-- 对应缺陷：待补充
-- 对应提交：待补充
+- 回归日期：2026-06-18
+- 对应缺陷：BUG-001 ~ BUG-004（首轮发现）
+- 对应提交：无（修复前基线测试）
 - 回归范围：
-  - 待补充
+  - 登录认证（5 用例）
+  - 权限与角色（4 用例）
+  - 咨询师管理（4 用例）
+  - 时间段管理（5 用例）
+  - 预约管理（7 用例）
+  - 咨询记录（5 用例）
+  - 反馈评价（5 用例）
+  - 统计报表（4 用例）
 - 回归结果：
-  - 待补充
+  - 通过：35 用例
+  - 不通过：4 用例（全部集中在权限控制模块 AUTHZ-001 ~ AUTHZ-004）
+  - 未执行：4 用例（文件上传模块，需 OSS 配置）
 - 结论：
-  - 待补充
+  - 核心业务逻辑（预约、咨询记录、评价、报表）运行正常，状态流转、重复拦截、参数校验均已生效
+  - 角色访问控制完全缺失，需作为下一轮 P0 修复重点
+
+---
+
+### 回归批次：REG-002（权限控制修复后回归）
+
+- 回归日期：2026-06-18
+- 对应缺陷：BUG-001, BUG-002, BUG-003, BUG-004
+- 对应提交：feat-role-access（待提交）
+- 修复内容：
+  - 新增 `@RequireRole` 注解（支持方法级和类级）
+  - 增强 `TokenInterceptor`：解析 JWT 后存储 userId/role/name 到 request attribute，并检查 `@RequireRole` 注解
+  - `ReportController`：类级 `@RequireRole(ADMIN)`
+  - `CounselorController`：管理类操作（PUT/update、PUT/status、GET/manage）加 `@RequireRole(ADMIN)`
+  - `ScheduleController`：增删改操作加 `@RequireRole(ADMIN)`
+  - `FeedbackController`：删除操作加 `@RequireRole(ADMIN)`
+  - `ConsultationRecordController`：完成操作加 `@RequireRole({ADMIN, COUNSELOR})`
+  - `AppointmentController`：`page()` 增加 `applyRoleFilter`（普通用户按 userId 过滤，咨询师按 counselorId 过滤）；`getById()` 增加 `checkAppointmentAccess`（越权访问抛 BusinessException）
+  - `CounselorMapper` 新增 `selectIdByUserId` 方法
+- 回归范围：权限模块全部 4 个用例（AUTHZ-001 ~ AUTHZ-004）
+- 回归结果：4/4 通过
+- 结论：角色访问控制已全面生效
 
 ---
 

@@ -1,12 +1,17 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
+import com.mindcare.interceptor.TokenInterceptor;
+import com.mindcare.mapper.CounselorMapper;
 import com.mindcare.pojo.Appointment;
+import com.mindcare.pojo.AppointmentDetail;
 import com.mindcare.pojo.AppointmentDetail;
 import com.mindcare.pojo.AppointmentQueryParam;
 import com.mindcare.pojo.AppointmentStatusUpdateParam;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.service.AppointmentService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,9 +34,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final CounselorMapper counselorMapper;
+    private final HttpServletRequest request;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService,
+                                 CounselorMapper counselorMapper,
+                                 HttpServletRequest request) {
         this.appointmentService = appointmentService;
+        this.counselorMapper = counselorMapper;
+        this.request = request;
+    }
+
+    /** 读取拦截器存入的当前用户角色 */
+    private Integer currentRole() {
+        return (Integer) request.getAttribute(TokenInterceptor.ATTR_ROLE);
+    }
+
+    /** 读取拦截器存入的当前用户 ID */
+    private Long currentUserId() {
+        return (Long) request.getAttribute(TokenInterceptor.ATTR_USER_ID);
     }
 
     /**
@@ -64,21 +85,69 @@ public class AppointmentController {
      */
     @GetMapping
     public Result page(AppointmentQueryParam queryParam) {
-        log.info("分页查询预约列表: {}", queryParam);
+        applyRoleFilter(queryParam);
+        log.info("分页查询预约列表: role={}, {}", currentRole(), queryParam);
         PageResult<AppointmentDetail> pageResult = appointmentService.page(queryParam);
         return Result.success(pageResult);
     }
 
     /**
-     * 查询预约详情。
+     * 根据当前用户角色，强制限定数据可见范围。
      *
-     * @param id 预约主键
-     * @return 预约详情
+     * <p>普通用户只能看自己的预约；咨询师只能看分配给自己的预约；
+     * 管理员不做额外限制。</p>
+     */
+    private void applyRoleFilter(AppointmentQueryParam queryParam) {
+        Integer role = currentRole();
+        Long userId = currentUserId();
+        if (role == null || userId == null) {
+            return;
+        }
+        if (role == RequireRole.USER) {
+            queryParam.setUserId(userId);
+        } else if (role == RequireRole.COUNSELOR) {
+            Long counselorId = counselorMapper.selectIdByUserId(userId);
+            if (counselorId != null) {
+                queryParam.setCounselorId(counselorId);
+            }
+        }
+    }
+
+    /**
+     * 查询预约详情。
      */
     @GetMapping("/{id}")
     public Result getById(@PathVariable Long id) {
-        log.info("查询预约详情: id={}", id);
-        return Result.success(appointmentService.getById(id));
+        AppointmentDetail detail = appointmentService.getById(id);
+        checkAppointmentAccess(detail);
+        log.info("查询预约详情: id={}, role={}", id, currentRole());
+        return Result.success(detail);
+    }
+
+    /**
+     * 校验当前用户是否有权限查看该预约。
+     *
+     * <p>普通用户只能查看自己的预约；咨询师只能查看分配给自己的预约；
+     * 管理员可查看所有。</p>
+     */
+    private void checkAppointmentAccess(AppointmentDetail detail) {
+        if (detail == null) {
+            return;
+        }
+        Integer role = currentRole();
+        Long userId = currentUserId();
+        if (role == null || userId == null) {
+            return;
+        }
+        if (role == RequireRole.USER && !userId.equals(detail.getUserId())) {
+            throw new com.mindcare.exception.BusinessException("无权访问该预约");
+        }
+        if (role == RequireRole.COUNSELOR) {
+            Long counselorId = counselorMapper.selectIdByUserId(userId);
+            if (counselorId == null || !counselorId.equals(detail.getCounselorId())) {
+                throw new com.mindcare.exception.BusinessException("无权访问该预约");
+            }
+        }
     }
 
     /**

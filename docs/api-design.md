@@ -3,7 +3,6 @@
 ## 1. 文档说明
 
 - 项目名称：心理咨询服务预约平台
-- 项目风格：参考 `tlias-web-management` 的传统 Spring Boot + MyBatis 后台管理系统风格
 - 接口风格：REST 风格为主，路径命名简洁，便于映射到 Controller / Service / Mapper 三层结构
 - 当前目标：保存第一版后端接口清单，作为后续编码实现基线
 

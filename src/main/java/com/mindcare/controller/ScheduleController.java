@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.PageResult;
 import com.mindcare.pojo.Result;
 import com.mindcare.pojo.Schedule;
@@ -41,6 +42,7 @@ public class ScheduleController {
      * @param schedule 时间段参数
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @PostMapping
     public Result add(@RequestBody Schedule schedule) {
         log.info("新增时间段: {}", schedule);
@@ -79,6 +81,7 @@ public class ScheduleController {
      * @param schedule 时间段参数
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @PutMapping
     public Result update(@RequestBody Schedule schedule) {
         log.info("修改时间段: {}", schedule);
@@ -95,6 +98,7 @@ public class ScheduleController {
      * @param id 时间段主键
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @DeleteMapping("/{id}")
     public Result deleteById(@PathVariable Long id) {
         log.info("删除时间段: id={}", id);
@@ -108,6 +112,7 @@ public class ScheduleController {
      * @param param 状态参数
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @PutMapping("/status")
     public Result updateStatus(@RequestBody ScheduleStatusUpdateParam param) {
         log.info("修改时间段状态: {}", param);

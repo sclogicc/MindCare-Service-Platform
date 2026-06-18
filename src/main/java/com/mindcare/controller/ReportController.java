@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.MonthlyAppointmentOption;
 import com.mindcare.pojo.ReportOption;
 import com.mindcare.pojo.ReportQueryParam;
@@ -23,6 +24,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/reports")
+@RequireRole(RequireRole.ADMIN)
 public class ReportController {
 
     private final ReportService reportService;

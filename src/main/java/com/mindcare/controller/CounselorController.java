@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.CounselorDetail;
 import com.mindcare.pojo.CounselorOption;
 import com.mindcare.pojo.CounselorPageItem;
@@ -83,6 +84,7 @@ public class CounselorController {
      * @param id 咨询师主键
      * @return 详情对象
      */
+    @RequireRole(RequireRole.ADMIN)
     @GetMapping("/manage/{id}")
     public Result getManageDetailById(@PathVariable Long id) {
         log.info("查询后台咨询师详情: id={}", id);
@@ -96,6 +98,7 @@ public class CounselorController {
      * @param param 修改参数
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @PutMapping
     public Result update(@RequestBody CounselorUpdateParam param) {
         log.info("修改咨询师业务信息: {}", param);
@@ -109,6 +112,7 @@ public class CounselorController {
      * @param param 状态参数
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @PutMapping("/status")
     public Result updateStatus(@RequestBody CounselorStatusUpdateParam param) {
         log.info("修改咨询师状态: {}", param);

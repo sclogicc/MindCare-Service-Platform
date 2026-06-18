@@ -69,4 +69,12 @@ public interface CounselorMapper {
      * @param status 目标状态
      */
     void updateStatusById(@Param("id") Long id, @Param("status") Integer status);
+
+    /**
+     * 根据用户 ID 查询咨询师主键。
+     *
+     * @param userId 系统用户主键
+     * @return 咨询师主键，若不存在则返回 null
+     */
+    Long selectIdByUserId(@Param("userId") Long userId);
 }

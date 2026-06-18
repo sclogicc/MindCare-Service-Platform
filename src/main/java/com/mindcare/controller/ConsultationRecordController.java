@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.CompleteAppointmentParam;
 import com.mindcare.pojo.ConsultationRecordPageItem;
 import com.mindcare.pojo.ConsultationRecordQueryParam;
@@ -67,6 +68,7 @@ public class ConsultationRecordController {
      * @param param 完成预约参数
      * @return 统一成功结果
      */
+    @RequireRole({RequireRole.ADMIN, RequireRole.COUNSELOR})
     @PostMapping("/complete")
     public Result completeAppointment(@RequestBody CompleteAppointmentParam param) {
         log.info("完成预约并填写咨询记录: {}", param);

@@ -22,7 +22,10 @@
 
 | 缺陷编号 | 发现日期 | 模块 | 问题描述 | 复现步骤 | 严重级别 | 当前状态 | 修复提交 | 修复说明 | 回归结果 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| BUG-001 | 待补充 | 预约管理 | 待补充 | 待补充 | 中 | 待修复 | 待补充 | 待补充 | 待补充 |
+| BUG-001 | 2026-06-18 | 权限控制 | 后端未实现角色级访问控制 — 普通用户可访问管理员专属接口（咨询师管理） | 用普通用户 token 访问 GET /counselors，正常返回全量数据 | 高 | 已回归关闭 | feat-role-access | 新增 @RequireRole 注解 + 增强 TokenInterceptor 角色校验 + 管理类接口加 ADMIN 限制 | 通过 |
+| BUG-002 | 2026-06-18 | 权限控制 | 咨询师可查看其他咨询师的预约详情，未做数据隔离 | 用 counselor01 token 访问 GET /appointments/3（属于 counselorId=4），成功返回 | 高 | 已回归关闭 | feat-role-access | AppointmentController 增加 checkAppointmentAccess 数据隔离校验 | 通过 |
+| BUG-003 | 2026-06-18 | 权限控制 | 普通用户可查看所有人的预约列表，未按 userId 过滤 | 用 user01 token 访问 GET /appointments，返回全部 27 条而非仅 userId=7 的数据 | 高 | 已回归关闭 | feat-role-access | AppointmentController.page() 增加 applyRoleFilter 按角色强制过滤 | 通过 |
+| BUG-004 | 2026-06-18 | 权限控制 | 非管理员可访问全量统计报表，未做角色拦截 | 用普通用户/咨询师 token 访问 GET /reports/*，均正常返回数据 | 中 | 已回归关闭 | feat-role-access | ReportController 类级 @RequireRole(ADMIN) | 通过 |
 
 ---
 

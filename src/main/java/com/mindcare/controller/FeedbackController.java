@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.Feedback;
 import com.mindcare.pojo.FeedbackPageItem;
 import com.mindcare.pojo.FeedbackQueryParam;
@@ -90,6 +91,7 @@ public class FeedbackController {
      * @param id 反馈主键
      * @return 统一成功结果
      */
+    @RequireRole(RequireRole.ADMIN)
     @DeleteMapping("/{id}")
     public Result deleteById(@PathVariable Long id) {
         log.info("删除反馈: id={}", id);

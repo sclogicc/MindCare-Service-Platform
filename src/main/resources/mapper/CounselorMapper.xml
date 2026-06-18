@@ -210,4 +210,8 @@
         where id = #{id}
     </update>
 
+    <select id="selectIdByUserId" resultType="java.lang.Long">
+        select id from counselor where user_id = #{userId}
+    </select>
+
 </mapper>
