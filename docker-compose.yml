@@ -1,0 +1,64 @@
+# ============================================================
+# MindCare Service Platform — Docker Compose 部署
+#
+# 启动所有服务:
+#   docker-compose up -d
+#
+# 停止:
+#   docker-compose down
+#
+# 重新构建并启动:
+#   docker-compose up -d --build
+# ============================================================
+
+version: '3.8'
+
+services:
+  # --- MySQL 8.x 数据库 ---
+  mysql:
+    image: mysql:8.0
+    container_name: mindcare-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: mindcare_service_platform
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_general_ci
+    ports:
+      - "3307:3306"                     # 宿主机 3307 映射到容器 3306（避免与本地 MySQL 冲突）
+    volumes:
+      - mysql-data:/var/lib/mysql       # 数据持久化
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql   # 建表
+      - ./sql/init_test_data.sql:/docker-entrypoint-initdb.d/02-data.sql  # 测试数据
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+
+  # --- Spring Boot 后端 ---
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mindcare-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID:-}
+      - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mysql-data:

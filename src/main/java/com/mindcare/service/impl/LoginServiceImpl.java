@@ -8,6 +8,7 @@ import com.mindcare.pojo.LoginInfo;
 import com.mindcare.pojo.LoginUserInfo;
 import com.mindcare.pojo.User;
 import com.mindcare.service.LoginService;
+import com.mindcare.util.PasswordUtil;
 import com.mindcare.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +46,8 @@ public class LoginServiceImpl implements LoginService {
             return null;
         }
 
-        // 明文密码对比（教学型项目，后续可替换为 BCrypt）
-        if (!Objects.equals(user.getPassword(), loginInfo.getPassword())) {
+        // BCrypt 密码校验（加密后的密码存储在数据库中）
+        if (!PasswordUtil.matches(loginInfo.getPassword(), user.getPassword())) {
             log.info("登录失败: 密码错误 username={}", loginInfo.getUsername());
             return null;
         }

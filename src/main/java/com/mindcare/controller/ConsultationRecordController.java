@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.PreventDuplicate;
 import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.CompleteAppointmentParam;
 import com.mindcare.pojo.ConsultationRecordPageItem;
@@ -71,6 +72,7 @@ public class ConsultationRecordController {
      * @param param 完成预约参数
      * @return 统一成功结果
      */
+    @PreventDuplicate
     @RequireRole({RequireRole.ADMIN, RequireRole.COUNSELOR})
     @PostMapping("/complete")
     public Result completeAppointment(@Valid @RequestBody CompleteAppointmentParam param) {

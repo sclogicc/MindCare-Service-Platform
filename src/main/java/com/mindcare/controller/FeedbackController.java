@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.PreventDuplicate;
 import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.Feedback;
 import com.mindcare.pojo.FeedbackPageItem;
@@ -42,6 +43,7 @@ public class FeedbackController {
      * @param feedback 反馈参数
      * @return 统一成功结果
      */
+    @PreventDuplicate
     @PostMapping
     public Result add(@Valid @RequestBody Feedback feedback) {
         log.info("新增反馈评价: {}", feedback);

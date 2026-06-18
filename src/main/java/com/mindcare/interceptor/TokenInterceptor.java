@@ -1,8 +1,10 @@
 package com.mindcare.interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mindcare.annotation.PreventDuplicate;
 import com.mindcare.annotation.RequireRole;
 import com.mindcare.pojo.Result;
+import com.mindcare.util.SubmitTokenStore;
 import com.mindcare.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,12 +19,13 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
- * JWT 登录校验与角色权限拦截器。
+ * JWT 登录校验 + 角色权限 + 防重复提交拦截器。
  *
  * <p>职责：
- * 1. 校验请求中的 JWT token 是否有效
- * 2. 将当前登录用户信息（userId、role、name）存入 request attribute
- * 3. 检查方法上的 {@link RequireRole} 注解，拦截越权请求</p>
+ * 1. 校验 JWT token 有效性
+ * 2. 将当前用户信息存入 request attribute
+ * 3. 检查 {@link RequireRole} 注解，拦截越权请求
+ * 4. 检查 {@link PreventDuplicate} 注解，拦截重复提交</p>
  */
 @Slf4j
 @Component
@@ -30,10 +33,18 @@ public class TokenInterceptor implements HandlerInterceptor {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    /** request attribute key */
     public static final String ATTR_USER_ID = "userId";
     public static final String ATTR_ROLE = "role";
     public static final String ATTR_USER_NAME = "userName";
+
+    /** 防重复提交的请求头 */
+    private static final String HEADER_SUBMIT_TOKEN = "X-Submit-Token";
+
+    private final SubmitTokenStore submitTokenStore;
+
+    public TokenInterceptor(SubmitTokenStore submitTokenStore) {
+        this.submitTokenStore = submitTokenStore;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -41,6 +52,12 @@ public class TokenInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // 放行令牌获取接口（无需认证）
+        if (request.getRequestURI().endsWith("/anti-duplicate/token")) {
+            return true;
+        }
+
+        // --- JWT 认证 ---
         String token = request.getHeader("token");
         if (!StringUtils.hasText(token)) {
             log.info("请求未携带 token，拦截请求: {}", request.getRequestURI());
@@ -57,7 +74,6 @@ public class TokenInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 将用户信息存入 request attribute，供 Controller 使用
         Integer userId = claims.get("id", Integer.class);
         Integer role = claims.get("role", Integer.class);
         String name = claims.get("name", String.class);
@@ -66,8 +82,8 @@ public class TokenInterceptor implements HandlerInterceptor {
         request.setAttribute(ATTR_ROLE, role);
         request.setAttribute(ATTR_USER_NAME, name);
 
-        // 方法级角色校验
         if (handler instanceof HandlerMethod hm) {
+            // --- 角色权限校验 ---
             RequireRole requireRole = getRequireRole(hm);
             if (requireRole != null) {
                 int[] allowedRoles = requireRole.value();
@@ -81,15 +97,27 @@ public class TokenInterceptor implements HandlerInterceptor {
                     }
                 }
             }
+
+            // --- 防重复提交校验 ---
+            PreventDuplicate preventDuplicate = hm.getMethodAnnotation(PreventDuplicate.class);
+            if (preventDuplicate != null) {
+                String submitToken = request.getHeader(HEADER_SUBMIT_TOKEN);
+                if (!StringUtils.hasText(submitToken)) {
+                    log.info("缺少防重复提交令牌: URI={}", request.getRequestURI());
+                    writeResponse(response, HttpServletResponse.SC_BAD_REQUEST, "缺少提交令牌，请刷新页面后重试");
+                    return false;
+                }
+                if (!submitTokenStore.validateAndConsume(submitToken)) {
+                    log.info("重复提交被拦截: URI={}", request.getRequestURI());
+                    writeResponse(response, HttpServletResponse.SC_CONFLICT, "请勿重复提交");
+                    return false;
+                }
+            }
         }
 
         return true;
     }
 
-    /**
-     * 从 HandlerMethod 上获取 @RequireRole 注解。
-     * 优先从方法上取，方法上没有则从类上取。
-     */
     private RequireRole getRequireRole(HandlerMethod handlerMethod) {
         Method method = handlerMethod.getMethod();
         RequireRole annotation = method.getAnnotation(RequireRole.class);

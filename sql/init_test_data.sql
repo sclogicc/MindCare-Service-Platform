@@ -35,24 +35,24 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- gender：1-男 2-女
 -- =========================================================
 INSERT INTO sys_user (id, username, password, name, phone, gender, role, status, create_time, update_time) VALUES
-(1,  'admin',       '123456', '沈砚书', '13810000001', 1, 1, 1, NOW(), NOW()),
+(1,  'admin',       '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '沈砚书', '13810000001', 1, 1, 1, NOW(), NOW()),
 
-(2,  'counselor01', '123456', '周岚',   '13810000002', 2, 2, 1, NOW(), NOW()),
-(3,  'counselor02', '123456', '许书宁', '13810000003', 2, 2, 1, NOW(), NOW()),
-(4,  'counselor03', '123456', '顾清禾', '13810000004', 1, 2, 1, NOW(), NOW()),
-(5,  'counselor04', '123456', '韩知夏', '13810000005', 2, 2, 1, NOW(), NOW()),
-(6,  'counselor05', '123456', '苏晚澄', '13810000006', 2, 2, 1, NOW(), NOW()),
+(2,  'counselor01', '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '周岚',   '13810000002', 2, 2, 1, NOW(), NOW()),
+(3,  'counselor02', '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '许书宁', '13810000003', 2, 2, 1, NOW(), NOW()),
+(4,  'counselor03', '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '顾清禾', '13810000004', 1, 2, 1, NOW(), NOW()),
+(5,  'counselor04', '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '韩知夏', '13810000005', 2, 2, 1, NOW(), NOW()),
+(6,  'counselor05', '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '苏晚澄', '13810000006', 2, 2, 1, NOW(), NOW()),
 
-(7,  'user01',      '123456', '赵安宁', '13810000007', 2, 3, 1, NOW(), NOW()),
-(8,  'user02',      '123456', '林知远', '13810000008', 1, 3, 1, NOW(), NOW()),
-(9,  'user03',      '123456', '何沐晨', '13810000009', 1, 3, 1, NOW(), NOW()),
-(10, 'user04',      '123456', '宋语彤', '13810000010', 2, 3, 1, NOW(), NOW()),
-(11, 'user05',      '123456', '唐嘉禾', '13810000011', 1, 3, 1, NOW(), NOW()),
-(12, 'user06',      '123456', '陆清越', '13810000012', 1, 3, 1, NOW(), NOW()),
-(13, 'user07',      '123456', '程以宁', '13810000013', 2, 3, 1, NOW(), NOW()),
-(14, 'user08',      '123456', '谢知遥', '13810000014', 2, 3, 1, NOW(), NOW()),
-(15, 'user09',      '123456', '温书瑶', '13810000015', 2, 3, 1, NOW(), NOW()),
-(16, 'user10',      '123456', '乔景川', '13810000016', 1, 3, 1, NOW(), NOW());
+(7,  'user01',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '赵安宁', '13810000007', 2, 3, 1, NOW(), NOW()),
+(8,  'user02',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '林知远', '13810000008', 1, 3, 1, NOW(), NOW()),
+(9,  'user03',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '何沐晨', '13810000009', 1, 3, 1, NOW(), NOW()),
+(10, 'user04',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '宋语彤', '13810000010', 2, 3, 1, NOW(), NOW()),
+(11, 'user05',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '唐嘉禾', '13810000011', 1, 3, 1, NOW(), NOW()),
+(12, 'user06',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '陆清越', '13810000012', 1, 3, 1, NOW(), NOW()),
+(13, 'user07',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '程以宁', '13810000013', 2, 3, 1, NOW(), NOW()),
+(14, 'user08',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '谢知遥', '13810000014', 2, 3, 1, NOW(), NOW()),
+(15, 'user09',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '温书瑶', '13810000015', 2, 3, 1, NOW(), NOW()),
+(16, 'user10',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '乔景川', '13810000016', 1, 3, 1, NOW(), NOW());
 
 -- =========================================================
 -- 二、咨询师业务信息

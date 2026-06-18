@@ -1,5 +1,6 @@
 package com.mindcare.controller;
 
+import com.mindcare.annotation.PreventDuplicate;
 import com.mindcare.constant.UserRole;
 import com.mindcare.interceptor.TokenInterceptor;
 import com.mindcare.mapper.CounselorMapper;
@@ -70,6 +71,7 @@ public class AppointmentController {
      * @param appointment 预约表单数据
      * @return 统一成功结果
      */
+    @PreventDuplicate
     @PostMapping
     public Result add(@Valid @RequestBody Appointment appointment) {
         log.info("新增预约: {}", appointment);
