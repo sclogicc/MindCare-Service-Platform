@@ -18,7 +18,7 @@
 
       <div class="hero-actions">
         <div class="hero-actions-top">
-          <el-button type="primary" @click="router.push('/appointments')">查看预约列表</el-button>
+          <el-button type="primary" @click="router.push(appointmentListPath)">查看预约列表</el-button>
           <el-button plain @click="router.push('/appointments/create')">发起新预约</el-button>
           <el-button plain @click="router.push('/reports')">查看统计报表</el-button>
         </div>
@@ -60,7 +60,7 @@
             <h3>最近预约</h3>
             <p>展示当前视角下最近创建的预约记录，便于快速进入业务处理。</p>
           </div>
-          <el-button link type="primary" @click="router.push('/appointments')">查看全部</el-button>
+          <el-button link type="primary" @click="router.push(appointmentListPath)">查看全部</el-button>
         </div>
 
         <div class="panel-caption-row">
@@ -204,6 +204,10 @@ const scopeText = computed(() => {
 
   return '我的'
 })
+
+const appointmentListPath = computed(() =>
+  authStore.userInfo?.role === 3 ? '/my-appointments' : '/appointments'
+)
 
 const greetingText = computed(() => {
   const hour = new Date().getHours()

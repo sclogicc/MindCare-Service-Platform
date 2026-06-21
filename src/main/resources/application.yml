@@ -25,5 +25,5 @@ logging:
 aliyun:
   oss:
     endpoint: https://oss-cn-beijing.aliyuncs.com
-    bucketName: your-bucket-name
+    bucketName: mind-careservice-platform
     region: cn-beijing

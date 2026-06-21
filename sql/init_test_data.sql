@@ -52,7 +52,8 @@ INSERT INTO sys_user (id, username, password, name, phone, gender, role, status,
 (13, 'user07',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '程以宁', '13810000013', 2, 3, 1, NOW(), NOW()),
 (14, 'user08',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '谢知遥', '13810000014', 2, 3, 1, NOW(), NOW()),
 (15, 'user09',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '温书瑶', '13810000015', 2, 3, 1, NOW(), NOW()),
-(16, 'user10',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '乔景川', '13810000016', 1, 3, 1, NOW(), NOW());
+(16, 'user10',      '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '乔景川', '13810000016', 1, 3, 1, NOW(), NOW()),
+(17, 'disabled01',  '$2a$10$2.v/jPYPMU0sReHmpsQQP.KMlZXZJUOwsHRZOv8iw0Z4HauyQWLDq', '沈默言', '13810000017', 1, 3, 0, NOW(), NOW());
 
 -- =========================================================
 -- 二、咨询师业务信息
@@ -69,10 +70,10 @@ INSERT INTO counselor (id, user_id, specialty, title, years_of_experience, intro
 -- 主要服务于咨询记录附件场景
 -- =========================================================
 INSERT INTO upload_file (id, original_name, file_name, file_url, file_type, business_type, uploader_id, create_time, update_time) VALUES
-(1, '首次沟通纪要.pdf',     'consult-record-001.pdf', 'https://mindcare-demo.oss-cn-beijing.aliyuncs.com/consult-record-001.pdf', 'pdf',  'CONSULTATION_ATTACHMENT', 3, NOW(), NOW()),
-(2, '情绪观察表.docx',      'consult-record-002.docx', 'https://mindcare-demo.oss-cn-beijing.aliyuncs.com/consult-record-002.docx', 'docx', 'CONSULTATION_ATTACHMENT', 5, NOW(), NOW()),
-(3, '家庭沟通摘要.pdf',     'consult-record-003.pdf', 'https://mindcare-demo.oss-cn-beijing.aliyuncs.com/consult-record-003.pdf', 'pdf',  'CONSULTATION_ATTACHMENT', 2, NOW(), NOW()),
-(4, '睡眠作息建议单.docx', 'consult-record-004.docx', 'https://mindcare-demo.oss-cn-beijing.aliyuncs.com/consult-record-004.docx', 'docx', 'CONSULTATION_ATTACHMENT', 6, NOW(), NOW());
+(1, '首次沟通纪要.pdf',     'consult-record-001.pdf', 'https://mind-careservice-platform.oss-cn-beijing.aliyuncs.com/consult-record-001.pdf', 'pdf',  'CONSULTATION_ATTACHMENT', 3, NOW(), NOW()),
+(2, '情绪观察表.docx',      'consult-record-002.docx', 'https://mind-careservice-platform.oss-cn-beijing.aliyuncs.com/consult-record-002.docx', 'docx', 'CONSULTATION_ATTACHMENT', 5, NOW(), NOW()),
+(3, '家庭沟通摘要.pdf',     'consult-record-003.pdf', 'https://mind-careservice-platform.oss-cn-beijing.aliyuncs.com/consult-record-003.pdf', 'pdf',  'CONSULTATION_ATTACHMENT', 2, NOW(), NOW()),
+(4, '睡眠作息建议单.docx', 'consult-record-004.docx', 'https://mind-careservice-platform.oss-cn-beijing.aliyuncs.com/consult-record-004.docx', 'docx', 'CONSULTATION_ATTACHMENT', 6, NOW(), NOW());
 
 -- =========================================================
 -- 四、咨询师可预约时间段
@@ -178,4 +179,6 @@ INSERT INTO feedback (id, appointment_id, user_id, counselor_id, score, content,
 (4, 4, 10, 5, 4, '咨询氛围比较轻松，能让我慢慢说出自己的担心。', 1, NOW(), NOW()),
 (5, 5, 11, 1, 5, '关于工作和生活边界的建议很有帮助，我已经准备开始尝试。', 0, NOW(), NOW()),
 (6, 6, 12, 2, 4, '老师会引导我去看问题背后的模式，不只是停留在情绪本身。', 0, NOW(), NOW()),
-(7, 8, 14, 4, 5, '对焦虑和睡眠的关系解释得很清楚，能感觉到对方很专业。', 1, NOW(), NOW());
+(7, 8, 14, 4, 5, '对焦虑和睡眠的关系解释得很清楚，能感觉到对方很专业。', 1, NOW(), NOW()),
+(8, 7, 13, 3, 4, '老师帮助我梳理了选择时的矛盾心理，但希望后续能给更多实操建议。', 1, NOW(), NOW()),
+(9, 9, 15, 5, 5, '非常理解新环境下的不安感，咨询后感觉轻松了很多。', 0, NOW(), NOW());

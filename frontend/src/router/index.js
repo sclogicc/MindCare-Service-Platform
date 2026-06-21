@@ -33,6 +33,12 @@ const routes = [
         meta: { title: '咨询师管理' }
       },
       {
+        path: 'my-appointments',
+        name: 'MyAppointments',
+        component: () => import('@/views/appointment/MyAppointmentView.vue'),
+        meta: { title: '我的预约' }
+      },
+      {
         path: 'appointments/create',
         name: 'AppointmentCreate',
         component: () => import('@/views/appointment/AppointmentCreateView.vue'),

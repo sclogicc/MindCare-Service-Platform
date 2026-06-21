@@ -75,16 +75,21 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const menuItems = [
-  { path: '/dashboard', title: '首页', desc: '业务总览与提醒', short: '01' },
-  { path: '/counselors', title: '咨询师管理', desc: '维护咨询师资料', short: '02' },
-  { path: '/appointments', title: '预约管理', desc: '处理预约流转', short: '03' },
-  { path: '/appointments/create', title: '新增预约', desc: '发起新的预约申请', short: '04' },
-  { path: '/schedules', title: '时间段管理', desc: '配置可预约服务资源', short: '05' },
-  { path: '/consultation-records', title: '咨询记录管理', desc: '维护咨询服务记录', short: '06' },
-  { path: '/feedbacks', title: '反馈评价管理', desc: '查看用户服务反馈', short: '07' },
-  { path: '/reports', title: '统计报表', desc: '分析平台业务数据', short: '08' }
+const allMenuItems = [
+  { path: '/dashboard', title: '首页', desc: '业务总览与提醒', short: '01', roles: [1, 2, 3] },
+  { path: '/counselors', title: '咨询师管理', desc: '维护咨询师资料', short: '02', roles: [1] },
+  { path: '/appointments', title: '预约管理', desc: '处理预约流转', short: '03', roles: [1, 2] },
+  { path: '/my-appointments', title: '我的预约', desc: '查看个人预约记录', short: '03', roles: [3] },
+  { path: '/appointments/create', title: '新增预约', desc: '发起新的预约申请', short: '04', roles: [1, 2, 3] },
+  { path: '/schedules', title: '时间段管理', desc: '配置可预约服务资源', short: '05', roles: [1, 2] },
+  { path: '/consultation-records', title: '咨询记录管理', desc: '维护咨询服务记录', short: '06', roles: [1, 2] },
+  { path: '/feedbacks', title: '反馈评价', desc: '查看与提交服务反馈', short: '07', roles: [1, 2, 3] },
+  { path: '/reports', title: '统计报表', desc: '分析平台业务数据', short: '08', roles: [1] }
 ]
+
+const menuItems = computed(() =>
+  allMenuItems.filter(item => item.roles.includes(authStore.userInfo?.role))
+)
 
 const roleText = computed(() => ROLE_MAP[authStore.userInfo?.role] || '未分配角色')
 
