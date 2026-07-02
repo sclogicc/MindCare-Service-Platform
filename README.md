@@ -6,8 +6,12 @@
 ## 1. 项目亮点
 
 - 基于 `JWT + 拦截器` 实现登录认证与接口鉴权。
+- 使用 `BCrypt` 进行密码加密存储与登录校验。
+- 通过自定义 `@RequireRole` 注解实现角色级权限控制，并结合用户/咨询师维度做数据隔离。
+- 使用 `@Validated`、`@Valid` 与统一异常处理完成声明式参数校验。
 - 预约流程包含固定状态流转：`待确认 -> 已确认 -> 已完成 / 已取消`。
 - 新增预约时基于 `schedule_id` 做时间段占用校验，避免同一时间段被重复预约。
+- 通过 `@PreventDuplicate` 与一次性提交令牌降低重复点击造成的重复写入风险。
 - 使用 `PageHelper` 实现分页查询，接口风格保持后台管理系统常见写法。
 - 使用 `MyBatis XML` 编写动态 SQL，复杂查询集中放在 Mapper XML 中。
 - 提供 `resultMap + collection` 的真实业务场景：查询咨询师详情时，同时查询其可预约时间段列表。
@@ -15,6 +19,7 @@
 - 支持 `MultipartFile + 阿里云 OSS` 文件上传，可用于头像或咨询附件场景。
 - 提供统计报表接口，支持预约状态分布、咨询师工作量、每月预约数量、反馈评分统计。
 - 前端使用 `Vue 3 + Element Plus + ECharts` 实现后台管理风格页面，并已打包集成到 Spring Boot 静态资源目录。
+- 提供 `Dockerfile`、`docker-compose.yml`、DDL 建表脚本和测试数据脚本，便于环境复现与演示部署。
 
 ## 2. 技术栈
 
@@ -119,7 +124,11 @@ MindCare-Service-Platform
 CREATE DATABASE mindcare_service_platform DEFAULT CHARACTER SET utf8mb4;
 ```
 
-2. 按你当前项目使用的表结构先建表。
+2. 执行建表脚本：
+
+```sql
+SOURCE sql/schema.sql;
+```
 
 3. 如果需要导入演示数据，执行：
 
@@ -129,8 +138,8 @@ SOURCE sql/init_test_data.sql;
 
 说明：
 
-- 当前 `sql` 目录下提供的是测试数据脚本 `init_test_data.sql`。
-- 该脚本会清空现有业务数据后重新插入演示数据，执行前请确认环境。
+- 当前 `sql` 目录下提供 `schema.sql` 建表脚本和 `init_test_data.sql` 演示数据脚本。
+- `init_test_data.sql` 会清空现有业务数据后重新插入演示数据，执行前请确认环境。
 
 ### 8.2 后端启动
 
@@ -264,17 +273,26 @@ npm run build
 - `frontend-ui-summary.md`：前端页面与 UI 说明
 - `startup-guide.md`：启动与常见问题说明
 
-## 14. 后续可继续完善的方向
+## 14. 已完成的企业级增强
 
-- 增加 `@Valid` 参数校验与统一参数异常处理
-- 引入 `BCrypt` 存储加密密码
-- 增加基于角色的细粒度权限控制
-- 引入 Redis 做缓存或防重复提交
-- 补充 Dockerfile / docker-compose 部署方案
-- 补充数据库建表脚本与完整初始化脚本
-- 补充接口测试用例与项目首页截图
+- `@Valid` / `@Validated` 参数校验与统一参数异常处理。
+- `BCrypt` 密码加密存储与登录校验。
+- 基于 `@RequireRole` 的角色权限控制与数据隔离。
+- 基于 `@PreventDuplicate` 和一次性提交令牌的防重复提交机制。
+- `AppointmentStatus`、`EnableStatus`、`UserRole` 等枚举常量化。
+- `Dockerfile` / `docker-compose.yml` 容器化部署配置。
+- `sql/schema.sql` 建表脚本与 `sql/init_test_data.sql` 演示数据脚本。
+- `docs/testing` 下的测试用例、缺陷记录和回归测试记录。
 
-## 15. 项目定位
+## 15. 后续可继续完善的方向
+
+- 引入 Redis 存储防重复提交令牌，支持多实例部署。
+- 将当前手工 API 测试沉淀为 JUnit / Spring Boot Test 自动化集成测试。
+- 增加更细粒度的操作审计表，记录关键业务操作的前后状态。
+- 优化并发预约控制，补充数据库唯一约束或乐观锁。
+- 补充更多首页截图、演示视频脚本和最终答辩 PPT。
+
+## 16. 项目定位
 
 这个项目不是大型企业级系统，也不是微服务项目，而是一个结构清晰、业务完整、可真实运行和演示的 Java 后端练习项目。它的重点在于：
 

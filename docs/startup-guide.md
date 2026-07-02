@@ -20,12 +20,13 @@ CREATE DATABASE mindcare_service_platform DEFAULT CHARACTER SET utf8mb4;
 
 ### 2.2 建表
 
-先执行项目当前使用的建表 SQL。
+先执行项目提供的建表脚本：
 
-说明：
+```powershell
+mysql -uroot -p123456 < sql\schema.sql
+```
 
-- `sql` 目录当前主要保留的是测试数据脚本。
-- 如果你后续补充了 `schema.sql`，建议先执行建表脚本，再执行测试数据脚本。
+说明：`schema.sql` 会创建 `mindcare_service_platform` 数据库并初始化项目所需表结构。
 
 ### 2.3 导入测试数据
 
